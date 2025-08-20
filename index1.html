@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distribuidora Mario y María - Catálogo de Condimentos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .cart-summary {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .cart-info {
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .cart-total {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .clear-cart {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clear-cart:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .product-image {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .product-name {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .product-description {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+
+        .product-price {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 20px;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .qty-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+        }
+
+        .qty-btn:hover {
+            background: #2980b9;
+            transform: scale(1.1);
+        }
+
+        .quantity {
+            font-size: 1.2em;
+            font-weight: bold;
+            min-width: 30px;
+        }
+
+        .add-to-cart {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .add-to-cart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        .cart-items {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
+            flex-grow: 1;
+        }
+
+        .item-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .item-details {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .remove-item {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+        }
+
+        .remove-item:hover {
+            background: #c0392b;
+        }
+
+        .checkout-btn {
+            background: linear-gradient(45deg, #8e44ad, #9b59b6);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: bold;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .checkout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(142, 68, 173, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .products-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .cart-summary {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌶️ Distribuidora Mario y María</h1>
+        <p>Los mejores condimentos para tu cocina</p>
+    </div>
+
+    <div class="container">
+        <div class="cart-summary">
+            <div class="cart-info">
+                <span id="cart-count">0</span> productos en el carrito
+            </div>
+            <div class="cart-total">
+                Total: $<span id="cart-total">0</span>
+            </div>
+            <button class="clear-cart" onclick="clearCart()">
+                Vaciar Carrito
+            </button>
+        </div>
+
+        <div class="products-grid" id="products-grid">
+            <!-- Los productos se cargarán aquí -->
+        </div>
+
+        <div class="cart-items" id="cart-items" style="display: none;">
+            <h3>Productos en tu carrito:</h3>
+            <div id="cart-list"></div>
+            <button class="checkout-btn" onclick="checkout()">
+                Proceder al Pago 💳
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Base de datos de productos (reemplaza las URLs de imágenes con las tuyas)
+        const products = [
+            {
+                id: 1,
+                name: "Pimentón Dulce",
+                description: "Pimentón dulce español, ideal para arroces y guisos",
+                price: 2500,
+                image: "https://via.placeholder.com/200x200/ff6b6b/fff?text=Piment%C3%B3n"
+            },
+            {
+                id: 2,
+                name: "Orégano Premium",
+                description: "Orégano seco de primera calidad, perfecto para pizzas",
+                price: 1800,
+                image: "https://via.placeholder.com/200x200/4ecdc4/fff?text=Or%C3%A9gano"
+            },
+            {
+                id: 3,
+                name: "Comino Molido",
+                description: "Comino molido fresco, esencial para la cocina latina",
+                price: 2200,
+                image: "https://via.placeholder.com/200x200/45b7d1/fff?text=Comino"
+            },
+            {
+                id: 4,
+                name: "Curry en Polvo",
+                description: "Mezcla de especias para curry, sabor auténtico",
+                price: 3200,
+                image: "https://via.placeholder.com/200x200/f39c12/fff?text=Curry"
+            },
+            {
+                id: 5,
+                name: "Ají Merkén",
+                description: "Ají merkén chileno tradicional, picante y ahumado",
+                price: 4500,
+                image: "https://via.placeholder.com/200x200/e74c3c/fff?text=Merk%C3%A9n"
+            },
+            {
+                id: 6,
+                name: "Albahaca Seca",
+                description: "Albahaca deshidratada, perfecta para salsas italianas",
+                price: 2800,
+                image: "https://via.placeholder.com/200x200/27ae60/fff?text=Albahaca"
+            },
+            {
+                id: 7,
+                name: "Pimienta Negra",
+                description: "Pimienta negra molida, el condimento universal",
+                price: 3500,
+                image: "https://via.placeholder.com/200x200/34495e/fff?text=Pimienta"
+            },
+            {
+                id: 8,
+                name: "Azafrán Premium",
+                description: "Azafrán de alta calidad, oro en tu cocina",
+                price: 12000,
+                image: "https://via.placeholder.com/200x200/f1c40f/fff?text=Azafr%C3%A1n"
+            }
+        ];
+
+        let cart = [];
+        let quantities = {};
+
+        // Inicializar cantidades
+        products.forEach(product => {
+            quantities[product.id] = 1;
+        });
+
+        function renderProducts() {
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = products.map(product => `
+                <div class="product-card">
+                    <img src="${product.image}" alt="${product.name}" class="product-image">
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-description">${product.description}</div>
+                    <div class="product-price">$${product.price.toLocaleString()}</div>
+                    
+                    <div class="quantity-controls">
+                        <button class="qty-btn" onclick="changeQuantity(${product.id}, -1)">-</button>
+                        <span class="quantity" id="qty-${product.id}">${quantities[product.id]}</span>
+                        <button class="qty-btn" onclick="changeQuantity(${product.id}, 1)">+</button>
+                    </div>
+                    
+                    <button class="add-to-cart" onclick="addToCart(${product.id})">
+                        Agregar al Carrito 🛒
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function changeQuantity(productId, change) {
+            quantities[productId] = Math.max(1, quantities[productId] + change);
+            document.getElementById(`qty-${productId}`).textContent = quantities[productId];
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const quantity = quantities[productId];
+            
+            const existingItem = cart.find(item => item.id === productId);
+            
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                cart.push({
+                    ...product,
+                    quantity: quantity
+                });
+            }
+            
+            updateCartDisplay();
+        }
+
+        function updateCartDisplay() {
+            const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            document.getElementById('cart-count').textContent = cartCount;
+            document.getElementById('cart-total').textContent = cartTotal.toLocaleString();
+            
+            const cartItems = document.getElementById('cart-items');
+            const cartList = document.getElementById('cart-list');
+            
+            if (cart.length > 0) {
+                cartItems.style.display = 'block';
+                cartList.innerHTML = cart.map((item, index) => `
+                    <div class="cart-item">
+                        <div class="item-info">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-details">Cantidad: ${item.quantity} - $${(item.price * item.quantity).toLocaleString()}</div>
+                        </div>
+                        <button class="remove-item" onclick="removeFromCart(${index})">
+                            Eliminar
+                        </button>
+                    </div>
+                `).join('');
+            } else {
+                cartItems.style.display = 'none';
+            }
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartDisplay();
+        }
+
+        function clearCart() {
+            cart = [];
+            updateCartDisplay();
+        }
+
+        function checkout() {
+            if (cart.length === 0) {
+                alert('Tu carrito está vacío');
+                return;
+            }
+            
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const itemsList = cart.map(item => `${item.name} (x${item.quantity})`).join(', ');
+            
+            alert(`¡Gracias por tu compra!
+            
+Productos: ${itemsList}
+Total: $${total.toLocaleString()}
+
+Te contactaremos pronto para coordinar la entrega.`);
+            
+            clearCart();
+        }
+
+        // Inicializar la página
+        renderProducts();
+        updateCartDisplay();
+    </script>
+</body>
+</html>
