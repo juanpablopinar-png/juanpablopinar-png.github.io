@@ -1,279 +1,159 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Distribuidora Mario y María</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Distribuidora Mario y María</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+    .header { background: rgba(255,255,255,0.95); padding: 20px 0; text-align: center; box-shadow: 0 2px 20px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+    .header h1 { color: #333; margin-bottom: 10px; font-size: 2.2em; }
+    .header p { color: #666; font-size: 1em; margin-bottom: 20px; }
+    .nav-tabs { display: flex; justify-content: center; gap: 20px; }
+    .tab-btn { background: rgba(255,255,255,0.3); border: 2px solid transparent; padding: 10px 25px; border-radius: 25px; cursor: pointer; font-size: 1em; font-weight: bold; color: #333; }
+    .tab-btn.active { background: rgba(255,255,255,0.9); border-color: #667eea; color: #667eea; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
+    /* Inicio */
+    .info-card { font-size: 0.9em; background: rgba(255,255,255,0.95); border-radius: 15px; padding: 20px; }
+    .info-card h3 { font-size: 1.2em; margin-bottom: 10px; }
 
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 20px 0;
-            text-align: center;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0; z-index: 100;
-        }
+    .contact-info { background: rgba(255,255,255,0.95); border-radius: 15px; padding: 30px; margin: 50px 0 30px 0; }
+    .contact-info h3 { text-align: center; margin-bottom: 20px; }
+    .contact-details { display: grid; grid-template-columns: repeat(auto-fit,minmax(250px,1fr)); gap: 20px; }
+    .contact-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(103,126,234,0.1); border-radius: 10px; font-size: 0.95em; }
+    .contact-item img { width: 20px; height: 20px; }
 
-        .header h1 { color: #333; margin-bottom: 10px; font-size: 2.5em; }
-        .header p { color: #666; font-size: 1.1em; margin-bottom: 20px; }
+    /* Catálogo */
+    .cart-summary { background: rgba(255,255,255,0.95); padding: 20px; border-radius: 15px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+    .cart-total { font-size: 1.2em; font-weight: bold; color: #e74c3c; }
+    .clear-cart { background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; }
+    .products-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px,1fr)); gap: 20px; }
+    .product-card { background: rgba(255,255,255,0.95); border-radius: 15px; padding: 20px; text-align: center; }
+    .product-image { width: 200px; height: 200px; object-fit: cover; border-radius: 10px; margin-bottom: 15px; }
+    .checkout-buttons { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+    .pdf-btn, .whatsapp-btn { flex: 1; min-width: 150px; padding: 12px 20px; border-radius: 25px; color: white; border: none; cursor: pointer; font-weight: bold; }
+    .pdf-btn { background: linear-gradient(45deg,#e74c3c,#c0392b); }
+    .whatsapp-btn { background: linear-gradient(45deg,#25d366,#128c7e); display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .whatsapp-btn img { width: 20px; height: 20px; }
 
-        .nav-tabs { display: flex; justify-content: center; gap: 20px; }
-        .tab-btn {
-            background: rgba(255, 255, 255, 0.3);
-            border: 2px solid transparent;
-            padding: 12px 30px; border-radius: 25px;
-            cursor: pointer; font-size: 1em; font-weight: bold;
-            color: #333; transition: all 0.3s ease;
-        }
-        .tab-btn.active {
-            background: rgba(255, 255, 255, 0.9);
-            border-color: #667eea; color: #667eea;
-        }
-        .tab-btn:hover { background: rgba(255, 255, 255, 0.7); }
-
-        .container { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        /* Inicio */
-        .welcome-section {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px; padding: 40px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            margin-bottom: 30px; text-align: center;
-        }
-        .welcome-section h2 { color: #333; font-size: 2.2em; margin-bottom: 20px; }
-        .welcome-section p { color: #666; font-size: 1.2em; line-height: 1.6; }
-
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 40px; }
-        .info-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px; padding: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        .info-card h3 { color: #333; font-size: 1.5em; margin-bottom: 15px; }
-        .info-card p { color: #666; line-height: 1.5; }
-
-        .contact-info {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px; padding: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            margin: 50px 0 30px 0; /* espacio extra arriba */
-        }
-        .contact-info h3 { text-align: center; color: #333; margin-bottom: 20px; }
-        .contact-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        .contact-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(103, 126, 234, 0.1); border-radius: 10px; }
-        .contact-text { font-weight: bold; color: #333; }
-
-        /* Catálogo */
-        .cart-summary {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px; border-radius: 15px;
-            margin-bottom: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
-        }
-        .cart-info { font-size: 1.2em; color: #333; }
-        .cart-total { font-size: 1.5em; font-weight: bold; color: #e74c3c; }
-        .clear-cart { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; }
-        .clear-cart:hover { background: #c0392b; }
-
-        .products-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
-
-        .product-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px; padding: 25px; text-align: center;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-        .product-card:hover { transform: translateY(-10px); }
-
-        .product-image { width: 200px; height: 200px; object-fit: cover; border-radius: 15px; margin-bottom: 20px; }
-        .product-name { font-size: 1.4em; font-weight: bold; margin-bottom: 10px; }
-        .product-description { color: #666; margin-bottom: 15px; }
-        .product-price { font-size: 1.5em; font-weight: bold; color: #27ae60; margin-bottom: 20px; }
-
-        .quantity-controls { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
-        .qty-btn { background: #3498db; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; }
-        .add-to-cart { background: linear-gradient(45deg, #27ae60, #2ecc71); color: white; border: none; padding: 12px 30px; border-radius: 25px; cursor: pointer; width: 100%; }
-
-        .cart-items { background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 20px; margin-bottom: 20px; }
-        .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .item-info { flex-grow: 1; }
-        .item-name { font-weight: bold; }
-        .item-controls { display: flex; gap: 10px; }
-
-        .checkout-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
-        .checkout-btn, .pdf-btn, .whatsapp-btn {
-            border: none; padding: 15px 20px; border-radius: 30px; cursor: pointer;
-            flex: 1; min-width: 150px; display: flex; align-items: center; justify-content: center; gap: 10px;
-            font-weight: bold; color: white;
-        }
-        .checkout-btn { background: linear-gradient(45deg, #8e44ad, #9b59b6); }
-        .pdf-btn { background: linear-gradient(45deg, #e74c3c, #c0392b); }
-        .whatsapp-btn { background: linear-gradient(45deg, #25d366, #128c7e); }
-
-        /* Botón flotante WhatsApp */
-        .whatsapp-float {
-            position: fixed; width: 60px; height: 60px;
-            bottom: 20px; right: 20px;
-            background: #25d366; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.2); z-index: 1000;
-        }
-        .whatsapp-float:hover { background: #128c7e; transform: scale(1.1); }
-
-        @media (max-width: 768px) {
-            .nav-tabs { flex-direction: column; gap: 10px; }
-            .tab-btn { width: 200px; }
-            .products-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+    .whatsapp-float { position: fixed; width: 60px; height: 60px; bottom: 20px; right: 20px; background: #25d366; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 2px 2px 10px rgba(0,0,0,0.2); }
+    .whatsapp-float img { width: 35px; }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🌶️ Distribuidora Mario y María</h1>
-        <p>Los mejores condimentos para tu cocina</p>
-        <div class="nav-tabs">
-            <button class="tab-btn active" onclick="showTab(event, 'inicio')">🏠 Inicio</button>
-            <button class="tab-btn" onclick="showTab(event, 'catalogo')">🛒 Catálogo</button>
+  <div class="header">
+    <h1>🌶️ Distribuidora Mario y María</h1>
+    <p>Los mejores condimentos para tu cocina</p>
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="showTab(event,'inicio')">🏠 Inicio</button>
+      <button class="tab-btn" onclick="showTab(event,'catalogo')">🛒 Catálogo</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- INICIO -->
+    <div id="inicio" class="tab-content active">
+      <div class="info-grid">
+        <div class="info-card"><h3>🌟 Nuestra Misión</h3><p>Proporcionar condimentos de la más alta calidad...</p></div>
+        <div class="info-card"><h3>🚚 Servicios</h3><p>Distribución rápida y atención personalizada</p></div>
+        <div class="info-card"><h3>⏰ Horarios</h3><p>Lun-Vie: 8-18<br>Sáb: 8-14<br>Dom: Cerrado</p></div>
+      </div>
+
+      <div class="contact-info">
+        <h3>📞 Contacto</h3>
+        <div class="contact-details">
+          <div class="contact-item"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"> +56 9 7725 3231</div>
+          <div class="contact-item">📧 juanpablo.pinar14@gmail.com</div>
+          <div class="contact-item">📍 Héroes del Buin 0294, Recoleta</div>
         </div>
+      </div>
     </div>
 
-    <div class="container">
-        <!-- INICIO -->
-        <div id="inicio" class="tab-content active">
-            <div class="welcome-section">
-                <h2>¡Bienvenidos a Distribuidora Mario y María!</h2>
-                <p>Somos una empresa familiar comprometida con brindar los mejores condimentos...</p>
-            </div>
+    <!-- CATÁLOGO -->
+    <div id="catalogo" class="tab-content">
+      <div class="cart-summary">
+        <div><span id="cart-count">0</span> productos</div>
+        <div class="cart-total">Total: $<span id="cart-total">0</span></div>
+        <button class="clear-cart" onclick="clearCart()">Vaciar Carrito</button>
+      </div>
 
-            <div class="info-grid">
-                <div class="info-card"><h3>🌟 Nuestra Misión</h3><p>Proporcionar condimentos...</p></div>
-                <div class="info-card"><h3>🚚 Nuestros Servicios</h3><p>• Distribución<br>• Logística<br>• Atención personalizada</p></div>
-                <div class="info-card"><h3>⏰ Horarios</h3><p>Lun-Vie: 8-18<br>Sáb: 8-14<br>Dom: Cerrado</p></div>
-            </div>
-
-            <div class="contact-info">
-                <h3>📞 Información de Contacto</h3>
-                <div class="contact-details">
-                    <div class="contact-item">📱 <span class="contact-text">WhatsApp: +56 9 7725 3231</span></div>
-                    <div class="contact-item">📧 <span class="contact-text">contacto@distribuidoramariomaria.cl</span></div>
-                    <div class="contact-item">📍 <span class="contact-text">Dirección: [Tu dirección]</span></div>
-                    <div class="contact-item">🌐 <span class="contact-text">Región Metropolitana</span></div>
-                </div>
-            </div>
+      <div class="cart-items" id="cart-items" style="display:none;">
+        <h3>Productos en tu carrito:</h3>
+        <div id="cart-list"></div>
+        <div class="checkout-buttons">
+          <button class="pdf-btn" onclick="downloadPDF()">📄 Descargar Cotización</button>
+          <button class="whatsapp-btn" onclick="sendWhatsApp()">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"> Enviar por WhatsApp
+          </button>
         </div>
+      </div>
 
-        <!-- CATÁLOGO -->
-        <div id="catalogo" class="tab-content">
-            <div class="cart-summary">
-                <div class="cart-info"><span id="cart-count">0</span> productos</div>
-                <div class="cart-total">Total: $<span id="cart-total">0</span></div>
-                <button class="clear-cart" onclick="clearCart()">Vaciar Carrito</button>
-            </div>
-
-            <div class="cart-items" id="cart-items" style="display: none;">
-                <h3>Productos en tu carrito:</h3>
-                <div id="cart-list"></div>
-                <div class="checkout-buttons">
-                    <button class="pdf-btn" onclick="downloadPDF()">📄 Descargar Cotización</button>
-                    <button class="whatsapp-btn" onclick="sendWhatsApp()">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="20"> Enviar por WhatsApp
-                    </button>
-                    <button class="checkout-btn" onclick="checkout()">💳 Proceder al Pago</button>
-                </div>
-            </div>
-
-            <div class="products-grid" id="products-grid"></div>
-        </div>
+      <div class="products-grid" id="products-grid"></div>
     </div>
+  </div>
 
-    <!-- Botón flotante WhatsApp -->
-    <a href="https://wa.me/56977253231?text=¡Hola! Me interesa conocer más sobre sus productos." 
-       class="whatsapp-float" target="_blank">
-       <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="35" alt="WhatsApp">
-    </a>
+  <!-- WhatsApp flotante -->
+  <a href="https://wa.me/56977253231?text=¡Hola! Me interesa conocer más sobre sus productos." class="whatsapp-float" target="_blank">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg">
+  </a>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script>
-        const products = [
-            {id:1,name:"Pimentón Dulce",description:"Pimentón dulce español",price:2500,image:"https://via.placeholder.com/200x200/ff6b6b/fff?text=Pimentón"},
-            {id:2,name:"Orégano Premium",description:"Orégano seco",price:1800,image:"https://via.placeholder.com/200x200/4ecdc4/fff?text=Orégano"},
-            {id:3,name:"Comino Molido",description:"Comino fresco",price:2200,image:"https://via.placeholder.com/200x200/45b7d1/fff?text=Comino"}
-        ];
-        let cart=[]; let quantities={}; products.forEach(p=>quantities[p.id]=1);
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const products=[
+      {id:1,name:"Pimentón Dulce",description:"Pimentón español de calidad",price:2500,image:"https://upload.wikimedia.org/wikipedia/commons/2/2d/Paprika.jpg"},
+      {id:2,name:"Orégano Premium",description:"Orégano seco seleccionado",price:1800,image:"https://upload.wikimedia.org/wikipedia/commons/5/55/Oregano.jpg"},
+      {id:3,name:"Comino Molido",description:"Comino fresco molido",price:2200,image:"https://upload.wikimedia.org/wikipedia/commons/2/26/Cumin.jpg"},
+      {id:4,name:"Cúrcuma",description:"Cúrcuma en polvo natural",price:3000,image:"https://upload.wikimedia.org/wikipedia/commons/6/6e/Turmeric.jpg"},
+      {id:5,name:"Canela",description:"Canela en rama y polvo",price:2800,image:"https://upload.wikimedia.org/wikipedia/commons/c/cb/Cinnamon.jpg"}
+    ];
+    let cart=[]; let quantities={}; products.forEach(p=>quantities[p.id]=1);
 
-        function showTab(event, tabName){
-            document.querySelectorAll('.tab-content').forEach(tab=>tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            if(event) event.currentTarget.classList.add('active');
-        }
+    function showTab(event,tab){document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.getElementById(tab).classList.add('active');event.currentTarget.classList.add('active');}
+    function renderProducts(){document.getElementById('products-grid').innerHTML=products.map(p=>`
+      <div class="product-card">
+        <img src="${p.image}" class="product-image">
+        <div><b>${p.name}</b></div>
+        <div>${p.description}</div>
+        <div><b>$${p.price.toLocaleString()}</b></div>
+        <div><button onclick="addToCart(${p.id})">Agregar 🛒</button></div>
+      </div>`).join('');}
+    function addToCart(id){const p=products.find(x=>x.id===id);const e=cart.find(i=>i.id===id);if(e){e.quantity++;}else{cart.push({...p,quantity:1});}updateCart();}
+    function updateCart(){const count=cart.reduce((s,i)=>s+i.quantity,0),total=cart.reduce((s,i)=>s+i.price*i.quantity,0);document.getElementById('cart-count').textContent=count;document.getElementById('cart-total').textContent=total.toLocaleString();const items=document.getElementById('cart-items'),list=document.getElementById('cart-list');if(cart.length>0){items.style.display='block';list.innerHTML=cart.map((i,idx)=>`<div>${i.name} x${i.quantity} - $${(i.price*i.quantity).toLocaleString()} <button onclick="removeItem(${idx})">❌</button></div>`).join('');}else{items.style.display='none';}}
+    function removeItem(i){cart.splice(i,1);updateCart();}
+    function clearCart(){cart=[];updateCart();}
 
-        function renderProducts(){
-            const grid=document.getElementById('products-grid');
-            grid.innerHTML=products.map(p=>`
-                <div class="product-card">
-                    <img src="${p.image}" class="product-image">
-                    <div class="product-name">${p.name}</div>
-                    <div class="product-description">${p.description}</div>
-                    <div class="product-price">$${p.price.toLocaleString()}</div>
-                    <div class="quantity-controls">
-                        <button class="qty-btn" onclick="changeQuantity(${p.id},-1)">-</button>
-                        <span id="qty-${p.id}">${quantities[p.id]}</span>
-                        <button class="qty-btn" onclick="changeQuantity(${p.id},1)">+</button>
-                    </div>
-                    <button class="add-to-cart" onclick="addToCart(${p.id})">Agregar al Carrito 🛒</button>
-                </div>`).join('');
-        }
+    // Descargar PDF formal
+    function downloadPDF(){
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(18); doc.text("Distribuidora Mario y María", 20, 20);
+      doc.setFontSize(12); doc.text("Cotización de productos", 20, 30);
+      doc.text("Fecha: "+new Date().toLocaleDateString(), 20, 40);
+      doc.line(20, 45, 190, 45);
 
-        function changeQuantity(id,c){quantities[id]=Math.max(1,quantities[id]+c);document.getElementById(`qty-${id}`).textContent=quantities[id];}
-        function addToCart(id){
-            const p=products.find(x=>x.id===id),q=quantities[id],e=cart.find(i=>i.id===id);
-            if(e){e.quantity+=q;} else {cart.push({...p,quantity:q});}
-            updateCartDisplay();
-        }
-        function updateCartDisplay(){
-            const count=cart.reduce((s,i)=>s+i.quantity,0),total=cart.reduce((s,i)=>s+i.price*i.quantity,0);
-            document.getElementById('cart-count').textContent=count;
-            document.getElementById('cart-total').textContent=total.toLocaleString();
-            const items=document.getElementById('cart-items'),list=document.getElementById('cart-list');
-            if(cart.length>0){
-                items.style.display='block';
-                list.innerHTML=cart.map((i,idx)=>`
-                    <div class="cart-item">
-                        <div class="item-info">
-                            <div class="item-name">${i.name}</div>
-                            <div class="item-details">Cantidad: ${i.quantity} - $${(i.price*i.quantity).toLocaleString()}</div>
-                        </div>
-                        <div class="item-controls">
-                            <button onclick="decreaseCartItem(${idx})">-</button>
-                            <span>${i.quantity}</span>
-                            <button onclick="increaseCartItem(${idx})">+</button>
-                            <button onclick="removeFromCart(${idx})">Eliminar</button>
-                        </div>
-                    </div>`).join('');
-            } else {items.style.display='none';}
-        }
-        function decreaseCartItem(i){if(cart[i].quantity>1){cart[i].quantity--;}else{cart.splice(i,1);}updateCartDisplay();}
-        function increaseCartItem(i){cart[i].quantity++;updateCartDisplay();}
-        function removeFromCart(i){cart.splice(i,1);updateCartDisplay();}
-        function clearCart(){cart=[];updateCartDisplay();}
-        function downloadPDF(){alert("Aquí iría la exportación a PDF (omitido por brevedad).");}
-        function sendWhatsApp(){alert("Aquí iría el envío del carrito a WhatsApp.");}
-        function checkout(){alert("Aquí iría el flujo de pago.");}
+      let y=55;
+      doc.text("Detalle de productos:",20,y); y+=10;
+      cart.forEach((i)=>{doc.text(`${i.name} - Cantidad: ${i.quantity} - Unit: $${i.price.toLocaleString()} - Total: $${(i.price*i.quantity).toLocaleString()}`,20,y); y+=10;});
+      doc.line(20,y,190,y); y+=10;
+      const total=cart.reduce((s,i)=>s+i.price*i.quantity,0);
+      doc.setFontSize(14); doc.text(`TOTAL: $${total.toLocaleString()}`,20,y); y+=15;
 
-        document.addEventListener("DOMContentLoaded",renderProducts);
-    </script>
+      doc.setFontSize(11);
+      doc.text("Datos de contacto:",20,y); y+=10;
+      doc.text("WhatsApp: +56 9 7725 3231",20,y); y+=7;
+      doc.text("Correo: juanpablo.pinar14@gmail.com",20,y); y+=7;
+      doc.text("Dirección: Héroes del Buin 0294, Recoleta",20,y); y+=15;
+
+      doc.text("Gracias por preferir Distribuidora Mario y María.",20,y);
+      doc.save("Cotizacion_Distribuidora.pdf");
+    }
+
+    function sendWhatsApp(){alert("Aquí se podría enviar la cotización vía WhatsApp");}
+    document.addEventListener("DOMContentLoaded",renderProducts);
+  </script>
 </body>
 </html>
