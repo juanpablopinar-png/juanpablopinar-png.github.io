@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Distribuidora Mario y María - Catálogo de Condimentos</title>
+    <title>Distribuidora Mario y María</title>
     <style>
         * {
             margin: 0;
@@ -23,6 +23,9 @@
             padding: 20px 0;
             text-align: center;
             box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .header h1 {
@@ -34,6 +37,35 @@
         .header p {
             color: #666;
             font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid transparent;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.7);
         }
 
         .container {
@@ -42,6 +74,107 @@
             padding: 30px 20px;
         }
 
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ESTILOS PÁGINA INICIO */
+        .welcome-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .welcome-section h2 {
+            color: #333;
+            font-size: 2.2em;
+            margin-bottom: 20px;
+        }
+
+        .welcome-section p {
+            color: #666;
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .info-card h3 {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .info-card p {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .contact-info {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .contact-info h3 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .contact-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(103, 126, 234, 0.1);
+            border-radius: 10px;
+        }
+
+        .contact-icon {
+            font-size: 1.5em;
+            color: #667eea;
+        }
+
+        .contact-text {
+            color: #333;
+            font-weight: bold;
+        }
+
+        /* ESTILOS PÁGINA CATÁLOGO */
         .cart-summary {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -343,6 +476,20 @@
                 gap: 15px;
                 text-align: center;
             }
+
+            .nav-tabs {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .tab-btn {
+                width: 200px;
+            }
+
+            .info-grid, .contact-details {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -350,38 +497,99 @@
     <div class="header">
         <h1>🌶️ Distribuidora Mario y María</h1>
         <p>Los mejores condimentos para tu cocina</p>
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="showTab('inicio')">🏠 Inicio</button>
+            <button class="tab-btn" onclick="showTab('catalogo')">🛒 Catálogo</button>
+        </div>
     </div>
 
     <div class="container">
-        <div class="cart-summary">
-            <div class="cart-info">
-                <span id="cart-count">0</span> productos en el carrito
+        <!-- PESTAÑA INICIO -->
+        <div id="inicio" class="tab-content active">
+            <div class="welcome-section">
+                <h2>¡Bienvenidos a Distribuidora Mario y María!</h2>
+                <p>Somos una empresa familiar comprometida con brindar los mejores condimentos y especias a nuestros clientes. Con años de experiencia en el rubro, nos especializamos en productos de alta calidad que darán el toque perfecto a tus comidas.</p>
             </div>
-            <div class="cart-total">
-                Total: $<span id="cart-total">0</span>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>🌟 Nuestra Misión</h3>
+                    <p>Proporcionar condimentos y especias de la más alta calidad, garantizando frescura y sabor en cada producto que ofrecemos a nuestros clientes.</p>
+                </div>
+
+                <div class="info-card">
+                    <h3>🚚 Nuestros Servicios</h3>
+                    <p>• Distribución de condimentos y especias<br>
+                    • Logística y transporte<br>
+                    • Atención personalizada<br>
+                    • Asesoría en productos<br>
+                    • Entregas a domicilio</p>
+                </div>
+
+                <div class="info-card">
+                    <h3>⏰ Horarios de Atención</h3>
+                    <p><strong>Lunes a Viernes:</strong> 8:00 AM - 6:00 PM<br>
+                    <strong>Sábados:</strong> 8:00 AM - 2:00 PM<br>
+                    <strong>Domingos:</strong> Cerrado</p>
+                </div>
             </div>
-            <button class="clear-cart" onclick="clearCart()">
-                Vaciar Carrito
-            </button>
+
+            <div class="contact-info">
+                <h3>📞 Información de Contacto</h3>
+                <div class="contact-details">
+                    <div class="contact-item">
+                        <span class="contact-icon">📱</span>
+                        <span class="contact-text">WhatsApp: +56 9 7725 3231</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">📧</span>
+                        <span class="contact-text">Email: contacto@distribuidoramariomaria.cl</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">📍</span>
+                        <span class="contact-text">Dirección: [Tu dirección aquí]</span>
+                    </div>
+                    <div class="contact-item">
+                        <span class="contact-icon">🌐</span>
+                        <span class="contact-text">Región Metropolitana, Chile</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="products-grid" id="products-grid">
-            <!-- Los productos se cargarán aquí -->
-        </div>
+        <!-- PESTAÑA CATÁLOGO -->
+        <div id="catalogo" class="tab-content">
+            <div class="cart-summary">
+                <div class="cart-info">
+                    <span id="cart-count">0</span> productos en el carrito
+                </div>
+                <div class="cart-total">
+                    Total: $<span id="cart-total">0</span>
+                </div>
+                <button class="clear-cart" onclick="clearCart()">
+                    Vaciar Carrito
+                </button>
+            </div>
 
-        <div class="cart-items" id="cart-items" style="display: none;">
-            <h3>Productos en tu carrito:</h3>
-            <div id="cart-list"></div>
-            <div class="checkout-buttons">
-                <button class="pdf-btn" onclick="downloadPDF()">
-                    📄 Descargar Cotización
-                </button>
-                <button class="whatsapp-btn" onclick="sendWhatsApp()">
-                    📱 Enviar por WhatsApp
-                </button>
-                <button class="checkout-btn" onclick="checkout()">
-                    💳 Proceder al Pago
-                </button>
+            <!-- CARRITO (arriba de los productos) -->
+            <div class="cart-items" id="cart-items" style="display: none;">
+                <h3>Productos en tu carrito:</h3>
+                <div id="cart-list"></div>
+                <div class="checkout-buttons">
+                    <button class="pdf-btn" onclick="downloadPDF()">
+                        📄 Descargar Cotización
+                    </button>
+                    <button class="whatsapp-btn" onclick="sendWhatsApp()">
+                        📱 Enviar por WhatsApp
+                    </button>
+                    <button class="checkout-btn" onclick="checkout()">
+                        💳 Proceder al Pago
+                    </button>
+                </div>
+            </div>
+
+            <div class="products-grid" id="products-grid">
+                <!-- Los productos se cargarán aquí -->
             </div>
         </div>
     </div>
@@ -395,7 +603,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        // Base de datos de productos (reemplaza las URLs de imágenes con las tuyas)
+        // Base de datos de productos
         const products = [
             {
                 id: 1,
@@ -463,6 +671,25 @@
             quantities[product.id] = 1;
         });
 
+        // Función para cambiar pestañas
+        function showTab(tabName) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remover clase active de todos los botones
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Mostrar la pestaña seleccionada
+            document.getElementById(tabName).classList.add('active');
+            
+            // Activar el botón correspondiente
+            event.target.classList.add('active');
+        }
+
         function renderProducts() {
             const grid = document.getElementById('products-grid');
             grid.innerHTML = products.map(product => `
@@ -524,7 +751,7 @@
                     <div class="cart-item">
                         <div class="item-info">
                             <div class="item-name">${item.name}</div>
-                            <div class="item-details">Cantidad: ${item.quantity} - ${(item.price * item.quantity).toLocaleString()}</div>
+                            <div class="item-details">Cantidad: ${item.quantity} - $${(item.price * item.quantity).toLocaleString()}</div>
                         </div>
                         <div class="item-controls">
                             <button class="item-qty-btn" onclick="decreaseCartItem(${index})" title="Quitar uno">-</button>
@@ -546,7 +773,6 @@
                 cart[index].quantity--;
                 updateCartDisplay();
             } else {
-                // Si queda 1, eliminar el producto completamente
                 removeFromCart(index);
             }
         }
@@ -608,8 +834,8 @@
                 doc.setFontSize(11);
                 doc.text(item.name, 20, yPos);
                 doc.text(item.quantity.toString(), 125, yPos);
-                doc.text(`${item.price.toLocaleString()}`, 140, yPos);
-                doc.text(`${total.toLocaleString()}`, 170, yPos);
+                doc.text(`$${item.price.toLocaleString()}`, 140, yPos);
+                doc.text(`$${total.toLocaleString()}`, 170, yPos);
                 
                 yPos += 15;
             });
@@ -620,7 +846,7 @@
             
             // Total general
             doc.setFontSize(16);
-            doc.text(`TOTAL: ${grandTotal.toLocaleString()}`, 140, yPos);
+            doc.text(`TOTAL: $${grandTotal.toLocaleString()}`, 140, yPos);
             
             // Información de contacto
             yPos += 30;
@@ -643,35 +869,8 @@
             let message = '¡Hola! Me interesa hacer un pedido:\n\n';
             
             cart.forEach(item => {
-                message += `• ${item.name} x${item.quantity} - ${(item.price * item.quantity).toLocaleString()}\n`;
+                message += `• ${item.name} x${item.quantity} - $${(item.price * item.quantity).toLocaleString()}\n`;
             });
             
-            message += `\n*Total: ${total.toLocaleString()}*\n\n¿Podrían confirmar disponibilidad y coordinar la entrega?`;
-            
-            const whatsappUrl = `https://wa.me/56977253231?text=${encodeURIComponent(message)}`;
-            window.open(whatsappUrl, '_blank');
-        }
-
-        function checkout() {
-            if (cart.length === 0) {
-                alert('Tu carrito está vacío');
-                return;
-            }
-            
-            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const itemsList = cart.map(item => `${item.name} (x${item.quantity})`).join(', ');
-            
-            alert(`¡Gracias por tu cotización!
-            
-Productos: ${itemsList}
-Total: ${total.toLocaleString()}
-
-Puedes descargar la cotización en PDF o enviarla por WhatsApp para proceder con tu pedido.`);
-        }
-
-        // Inicializar la página
-        renderProducts();
-        updateCartDisplay();
-    </script>
-</body>
-</html>
+            message += `\n*Total: $${total.toLocaleString()}*\n\n¿Podrían confirmar disponibilida
+        
