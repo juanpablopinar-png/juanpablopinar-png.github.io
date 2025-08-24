@@ -15,7 +15,7 @@
   .header { background:#2c3e50; padding:20px 0; text-align:center; box-shadow:0 3px 15px rgba(0,0,0,0.3); position:sticky; top:35px; z-index:100; }
   .header h1 { font-size:2em; color:#ecf0f1; margin-bottom:5px; font-weight:700; }
   .header p { color:#bdc3c7; font-size:1em; margin-bottom:15px; }
-  .nav-tabs { display:flex; justify-content:center; gap:15px; }
+  .nav-tabs { display:flex; justify-content:center; gap:15px; flex-wrap:wrap; }
   .tab-btn { background:#34495e; border:none; padding:10px 25px; border-radius:25px; cursor:pointer; font-size:0.95em; font-weight:600; color:#ecf0f1; transition:0.3s; }
   .tab-btn:hover { background:#3f5870; }
   .tab-btn.active { background:#3498db; color:white; }
@@ -87,9 +87,9 @@
   <h1>Distribuidora Mario y María</h1>
   <p>Condimentos premium para tu cocina</p>
   <div class="nav-tabs">
-    <button class="tab-btn active" onclick="showTab(event,'inicio')">Inicio</button>
-    <button class="tab-btn" onclick="showTab(event,'catalogo')">Catálogo</button>
-    <button class="tab-btn" onclick="showTab(event,'checkout')">Checkout</button>
+    <button class="tab-btn active" data-tab="inicio">Inicio</button>
+    <button class="tab-btn" data-tab="catalogo">Catálogo</button>
+    <button class="tab-btn" data-tab="checkout">Checkout</button>
   </div>
 </div>
 
@@ -120,3 +120,131 @@
       </div>
     </div>
   </div>
+
+  <!-- CATÁLOGO -->
+  <div id="catalogo" class="tab-content">
+    <div class="cart-summary">
+      <div><span id="cart-count">0</span> productos</div>
+      <div class="cart-total">Total: $<span id="cart-total">0</span></div>
+      <button class="clear-cart" onclick="clearCart()">Vaciar Carrito</button>
+      <button class="checkout-btn" onclick="switchTab('checkout')">Finalizar Compra</button>
+    </div>
+
+    <div class="cart-items" id="cart-items" style="display:none;">
+      <h3>Productos en tu carrito:</h3>
+      <div id="cart-list"></div>
+    </div>
+
+    <div class="products-grid" id="products-grid"></div>
+  </div>
+
+  <!-- CHECKOUT -->
+  <div id="checkout" class="tab-content">
+    <h2>📝 Cotización</h2>
+    <div id="checkout-summary"></div>
+
+    <h3>📩 Formulario de contacto</h3>
+    <form id="checkout-form">
+      <p>Con esto nos llegará el pedido y te contactaremos de todas formas para darte seguimiento.</p>
+      <input type="text" name="name" placeholder="Nombre" required>
+      <input type="email" name="email" placeholder="Correo electrónico" required>
+      <input type="tel" name="phone" placeholder="Teléfono">
+      <textarea name="message" placeholder="Comentarios adicionales" rows="4"></textarea>
+      <p>Nos tardamos máximo 48 horas hábiles en entregar el pedido.</p>
+      <button type="submit">Enviar cotización</button>
+    </form>
+  </div>
+</div>
+
+<a href="https://wa.me/56977253231?text=¡Hola! Me interesa conocer más sobre sus productos." class="whatsapp-float" target="_blank">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg">
+</a>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js"></script>
+<script>
+  emailjs.init("r2pWUoFAXXQ72yhLA");
+
+  const products=[
+    {id:1,name:"Pimentón Dulce",description:"Pimentón español de calidad",price:2500,image:"https://santaisabel.vtexassets.com/arquivos/ids/176016-900-900?width=900&height=900&aspect=true"},
+    {id:2,name:"Orégano Premium",description:"Orégano seco seleccionado",price:1800,image:"https://upload.wikimedia.org/wikipedia/commons/5/55/Oregano.jpg"},
+    {id:3,name:"Comino Molido",description:"Comino fresco molido",price:2200,image:"https://upload.wikimedia.org/wikipedia/commons/2/26/Cumin.jpg"}
+  ];
+  let cart=[];
+
+  function renderProducts(){
+    document.getElementById('products-grid').innerHTML=products.map(p=>`
+      <div class="product-card">
+        <img src="${p.image}" class="product-image">
+        <div><b>${p.name}</b></div>
+        <div>${p.description}</div>
+        <div><b>$${p.price.toLocaleString()}</b></div>
+        <div><button onclick="addToCart(${p.id})">Agregar</button></div>
+      </div>`).join('');
+  }
+
+  function addToCart(id){
+    const p=products.find(x=>x.id===id);
+    const e=cart.find(i=>i.id===id);
+    if(e) e.quantity++; else cart.push({...p,quantity:1});
+    updateCart();
+  }
+
+  function updateCart(){
+    const count=cart.reduce((s,i)=>s+i.quantity,0),
+          total=cart.reduce((s,i)=>s+i.price*i.quantity,0);
+    document.getElementById('cart-count').textContent=count;
+    document.getElementById('cart-total').textContent=total.toLocaleString();
+    const items=document.getElementById('cart-items'),
+          list=document.getElementById('cart-list');
+    if(cart.length>0){
+      items.style.display='block';
+      list.innerHTML=cart.map((i,idx)=>`${i.name} x${i.quantity} - $${(i.price*i.quantity).toLocaleString()} <button class="remove-btn" onclick="removeItem(${idx})">Eliminar</button>`).join('<br>');
+    } else items.style.display='none';
+    updateCheckout();
+  }
+
+  function removeItem(i){ cart.splice(i,1); updateCart(); }
+  function clearCart(){ cart=[]; updateCart(); }
+
+  function updateCheckout(){
+    const summaryEl=document.getElementById('checkout-summary');
+    if(!summaryEl) return;
+    const summary=cart.map(i=>`${i.name} x${i.quantity} - $${(i.price*i.quantity).toLocaleString()}`).join('<br>');
+    const total=cart.reduce((s,i)=>s+i.price*i.quantity,0);
+    summaryEl.innerHTML = cart.length>0 ? `<p>${summary}</p><h3>Total: $${total.toLocaleString()}</h3>` : "<p>No hay productos en el carrito.</p>";
+  }
+
+  function switchTab(tabId){
+    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+    updateCheckout();
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', e=>switchTab(btn.dataset.tab));
+  });
+
+  document.addEventListener("DOMContentLoaded", renderProducts);
+
+  // Formulario EmailJS
+  document.getElementById('checkout-form').addEventListener('submit', function(event){
+    event.preventDefault();
+    const templateParams={
+      name:this.name.value,
+      email:this.email.value,
+      phone:this.phone.value,
+      message:this.message.value,
+      cart:cart.map(i=>`${i.name} x${i.quantity} - $${(i.price*i.quantity).toLocaleString()}`).join(", "),
+      total:cart.reduce((s,i)=>s+i.price*i.quantity,0)
+    };
+    emailjs.send('service_jhffvp5','template_olcm89v',templateParams)
+      .then(()=>{ alert('Cotización enviada correctamente.'); this.reset(); cart=[]; updateCart(); switchTab('inicio'); })
+      .catch(err=>{ alert('Error al enviar: '+err); });
+  });
+</script>
+</body>
+</html>
+
