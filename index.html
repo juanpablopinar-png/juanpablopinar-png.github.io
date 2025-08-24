@@ -141,7 +141,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2.6.4/dist/email.min.js"></script>
   <script>
-    emailjs.init("TU_USER_ID"); // reemplaza TU_USER_ID con tu public key de EmailJS
+    emailjs.init("r2pWUoFAXXQ72yhLA"); // reemplaza TU_USER_ID con tu public key de EmailJS
 
     const products=[
       {id:1,name:"Pimentón Dulce",description:"Pimentón español de calidad",price:2500,image:"https://santaisabel.vtexassets.com/arquivos/ids/176016-900-900?width=900&height=900&aspect=true"},
@@ -254,7 +254,7 @@
         total: `$${total.toLocaleString()}`
       };
 
-      emailjs.send("TU_SERVICE_ID","TU_TEMPLATE_ID", templateParams)
+      emailjs.send("service_jhffvp5","template_olcm89v", templateParams)
         .then(function(response){
           alert("¡Tu cotización ha sido enviada correctamente!");
           form.reset(); cart=[]; updateCart(); showTab(null,'catalogo');
