@@ -6,7 +6,8 @@
   <title>Distribuidora Mario y María</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height:100vh; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height:100vh; color:#333; }
+
     .banner { background:#27ae60; color:white; text-align:center; padding:8px; font-weight:bold; position:sticky; top:0; z-index:200; }
     .header { background:rgba(255,255,255,0.95); padding:20px 0; text-align:center; box-shadow:0 2px 20px rgba(0,0,0,0.1); position:sticky; top:30px; z-index:100; }
     .header h1 { color:#333; margin-bottom:10px; font-size:2.2em; }
@@ -51,6 +52,14 @@
 
     .whatsapp-float { position:fixed; width:60px; height:60px; bottom:20px; right:20px; background:#25d366; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:2px 2px 10px rgba(0,0,0,0.2); }
     .whatsapp-float img { width:35px; }
+
+    /* Estilo corporativo para formulario */
+    #checkout-form { background:white; padding:30px; border-radius:15px; box-shadow:0 5px 25px rgba(0,0,0,0.1); max-width:600px; margin:auto; }
+    #checkout-form input, #checkout-form textarea { width:100%; padding:12px 15px; margin-bottom:15px; border:1px solid #ccc; border-radius:8px; font-size:1em; transition:all 0.3s ease; }
+    #checkout-form input:focus, #checkout-form textarea:focus { border-color:#667eea; outline:none; box-shadow:0 0 5px rgba(102,126,234,0.5); }
+    #checkout-form button { background:#667eea; color:white; border:none; padding:12px 20px; font-size:1em; border-radius:10px; cursor:pointer; font-weight:bold; transition:all 0.3s ease; width:100%; }
+    #checkout-form button:hover { background:#5562d6; }
+    #checkout-form p { font-size:0.95em; color:#555; margin-bottom:15px; text-align:center; }
   </style>
 </head>
 <body>
@@ -123,12 +132,12 @@
       <div id="checkout-summary"></div>
       
       <h3>📩 Formulario de contacto</h3>
-      <p>Con esto nos llegará el pedido y te contactaremos de todas formas para darte seguimiento del pedido. Nos tardamos máximo 48 horas hábiles en entregar el pedido.</p>
+      <p>Con esto nos llegará el pedido y te contactaremos para seguimiento. Nos tardamos máximo 48 horas hábiles en entregar el pedido.</p>
       <form id="checkout-form">
-        <input type="text" name="name" placeholder="Nombre" required><br><br>
-        <input type="email" name="email" placeholder="Correo electrónico" required><br><br>
-        <input type="tel" name="phone" placeholder="Teléfono"><br><br>
-        <textarea name="message" placeholder="Comentarios adicionales" rows="4"></textarea><br><br>
+        <input type="text" name="name" placeholder="Nombre completo" required>
+        <input type="email" name="email" placeholder="Correo electrónico" required>
+        <input type="tel" name="phone" placeholder="Teléfono">
+        <textarea name="message" placeholder="Comentarios adicionales" rows="4"></textarea>
         <button type="submit">Enviar cotización</button>
       </form>
     </div>
@@ -141,7 +150,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2.6.4/dist/email.min.js"></script>
   <script>
-    emailjs.init("r2pWUoFAXXQ72yhLA"); // reemplaza TU_USER_ID con tu public key de EmailJS
+    emailjs.init("TU_USER_ID"); // reemplaza TU_USER_ID
 
     const products=[
       {id:1,name:"Pimentón Dulce",description:"Pimentón español de calidad",price:2500,image:"https://santaisabel.vtexassets.com/arquivos/ids/176016-900-900?width=900&height=900&aspect=true"},
@@ -156,10 +165,6 @@
       document.getElementById(tab).classList.add('active');
       if(event && event.currentTarget){
         event.currentTarget.classList.add('active');
-      } else {
-        const btnMap = {inicio:0, catalogo:1, checkout:2};
-        const btns = document.querySelectorAll('.tab-btn');
-        if(btnMap[tab]!==undefined) btns[btnMap[tab]].classList.add('active');
       }
       updateCheckout();
     }
@@ -199,9 +204,7 @@
             <button onclick="removeItem(${idx})">❌</button>
           </div>
         `).join('');
-      } else {
-        items.style.display='none';
-      }
+      } else { items.style.display='none'; }
       updateCheckout();
     }
 
@@ -210,9 +213,7 @@
 
     function updateCheckout(){
       if(!document.getElementById('checkout-summary')) return;
-      const summary = cart.map(i => 
-        `${i.name} x${i.quantity} - $${(i.price * i.quantity).toLocaleString()}`
-      ).join('<br>');
+      const summary = cart.map(i => `${i.name} x${i.quantity} - $${(i.price*i.quantity).toLocaleString()}`).join('<br>');
       const total = cart.reduce((s,i)=>s+i.price*i.quantity,0);
       document.getElementById('checkout-summary').innerHTML = cart.length>0 ? 
         `<p>${summary}</p><h3>Total: $${total.toLocaleString()}</h3>` : "<p>No hay productos en el carrito.</p>";
@@ -226,11 +227,9 @@
       doc.text("Fecha: "+new Date().toLocaleDateString(), 20, 40);
       doc.line(20, 45, 190, 45);
       let y=55;
-      doc.text("Detalle de productos:",20,y); y+=10;
       cart.forEach((i)=>{doc.text(`${i.name} - Cantidad: ${i.quantity} - Unit: $${i.price.toLocaleString()} - Total: $${(i.price*i.quantity).toLocaleString()}`,20,y); y+=10;});
-      doc.line(20,y,190,y); y+=10;
       const total=cart.reduce((s,i)=>s+i.price*i.quantity,0);
-      doc.setFontSize(14); doc.text(`TOTAL: $${total.toLocaleString()}`,20,y); y+=15;
+      doc.setFontSize(14); doc.text(`TOTAL: $${total.toLocaleString()}`,20,y+10);
       doc.save("Cotizacion_Distribuidora.pdf");
     }
 
@@ -254,16 +253,10 @@
         total: `$${total.toLocaleString()}`
       };
 
-      emailjs.send("service_jhffvp5","template_olcm89v", templateParams)
+      emailjs.send("TU_SERVICE_ID","TU_TEMPLATE_ID", templateParams)
         .then(function(response){
           alert("¡Tu cotización ha sido enviada correctamente!");
           form.reset(); cart=[]; updateCart(); showTab(null,'catalogo');
         }, function(error){
-          alert("Ocurrió un error al enviar el formulario, intenta nuevamente.");
-        });
-    });
-
-    document.addEventListener("DOMContentLoaded",renderProducts);
-  </script>
-</body>
-</html>
+          console.error(error); 
+          alert
