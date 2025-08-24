@@ -5,69 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Distribuidora Mario y María</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height:100vh; }
+    .banner { background:#27ae60; color:white; text-align:center; padding:8px; font-weight:bold; position:sticky; top:0; z-index:200; }
+    .header { background:rgba(255,255,255,0.95); padding:20px 0; text-align:center; box-shadow:0 2px 20px rgba(0,0,0,0.1); position:sticky; top:30px; z-index:100; }
+    .header h1 { color:#333; margin-bottom:10px; font-size:2.2em; }
+    .header p { color:#666; font-size:1em; margin-bottom:20px; }
+    .nav-tabs { display:flex; justify-content:center; gap:20px; }
+    .tab-btn { background:rgba(255,255,255,0.3); border:2px solid transparent; padding:10px 25px; border-radius:25px; cursor:pointer; font-size:1em; font-weight:bold; color:#333; }
+    .tab-btn.active { background:rgba(255,255,255,0.9); border-color:#667eea; color:#667eea; }
+    .container { max-width:1200px; margin:0 auto; padding:30px 20px; }
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
 
-    /* Banner fijo */
-    .banner { 
-      background: #27ae60; 
-      color: white; 
-      text-align: center; 
-      padding: 8px; 
-      font-weight: bold; 
-      position: sticky; 
-      top: 0; 
-      z-index: 200; 
-    }
+    .info-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(250px,1fr)); gap:20px; }
+    .info-card { font-size:0.9em; background:rgba(255,255,255,0.95); border-radius:15px; padding:20px; }
+    .info-card h3 { font-size:1.2em; margin-bottom:10px; }
 
-    .header { background: rgba(255,255,255,0.95); padding: 20px 0; text-align: center; box-shadow: 0 2px 20px rgba(0,0,0,0.1); position: sticky; top: 30px; z-index: 100; }
-    .header h1 { color: #333; margin-bottom: 10px; font-size: 2.2em; }
-    .header p { color: #666; font-size: 1em; margin-bottom: 20px; }
-    .nav-tabs { display: flex; justify-content: center; gap: 20px; }
-    .tab-btn { background: rgba(255,255,255,0.3); border: 2px solid transparent; padding: 10px 25px; border-radius: 25px; cursor: pointer; font-size: 1em; font-weight: bold; color: #333; }
-    .tab-btn.active { background: rgba(255,255,255,0.9); border-color: #667eea; color: #667eea; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+    .contact-info { background:rgba(255,255,255,0.95); border-radius:15px; padding:30px; margin:50px 0 30px 0; }
+    .contact-info h3 { text-align:center; margin-bottom:20px; }
+    .contact-details { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px; }
+    .contact-item { display:flex; align-items:center; gap:10px; padding:10px; background:rgba(103,126,234,0.1); border-radius:10px; font-size:0.95em; }
+    .contact-item img { width:20px; height:20px; }
 
-    /* Inicio */
-    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px,1fr)); gap: 20px; }
-    .info-card { font-size: 0.9em; background: rgba(255,255,255,0.95); border-radius: 15px; padding: 20px; }
-    .info-card h3 { font-size: 1.2em; margin-bottom: 10px; }
+    .cart-summary { background:rgba(255,255,255,0.95); padding:20px; border-radius:15px; margin-bottom:30px; display:flex; gap:10px; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+    .cart-total { font-size:1.2em; font-weight:bold; color:#e74c3c; }
+    .clear-cart, .checkout-btn { background:#e67e22; color:white; border:none; padding:8px 15px; border-radius:20px; cursor:pointer; font-weight:bold; }
+    .clear-cart { background:#e74c3c; }
+    .products-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(250px,1fr)); gap:20px; }
+    .product-card { background:rgba(255,255,255,0.95); border-radius:15px; padding:20px; text-align:center; }
+    .product-image { width:150px; height:auto; max-height:150px; object-fit:contain; border-radius:10px; margin-bottom:15px; }
+    .checkout-buttons { display:flex; gap:10px; margin-top:15px; flex-wrap:wrap; }
+    .pdf-btn, .whatsapp-btn { flex:1; min-width:150px; padding:12px 20px; border-radius:25px; color:white; border:none; cursor:pointer; font-weight:bold; }
+    .pdf-btn { background:linear-gradient(45deg,#e74c3c,#c0392b); }
+    .whatsapp-btn { background:linear-gradient(45deg,#25d366,#128c7e); display:flex; align-items:center; justify-content:center; gap:8px; }
+    .whatsapp-btn img { width:20px; height:20px; }
 
-    .contact-info { background: rgba(255,255,255,0.95); border-radius: 15px; padding: 30px; margin: 50px 0 30px 0; }
-    .contact-info h3 { text-align: center; margin-bottom: 20px; }
-    .contact-details { display: grid; grid-template-columns: repeat(auto-fit,minmax(250px,1fr)); gap: 20px; }
-    .contact-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(103,126,234,0.1); border-radius: 10px; font-size: 0.95em; }
-    .contact-item img { width: 20px; height: 20px; }
+    #checkout-summary { background:rgba(255,255,255,0.95); padding:20px; border-radius:15px; margin-bottom:20px; }
 
-    /* Catálogo */
-    .cart-summary { background: rgba(255,255,255,0.95); padding: 20px; border-radius: 15px; margin-bottom: 30px; display: flex; gap: 10px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-    .cart-total { font-size: 1.2em; font-weight: bold; color: #e74c3c; }
-    .clear-cart, .checkout-btn { background: #e67e22; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-    .clear-cart { background: #e74c3c; }
-    .products-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px,1fr)); gap: 20px; }
-    .product-card { background: rgba(255,255,255,0.95); border-radius: 15px; padding: 20px; text-align: center; }
-    .product-image { width: 150px; height: auto; max-height: 150px; object-fit: contain; border-radius: 10px; margin-bottom: 15px; }
-    .checkout-buttons { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
-    .pdf-btn, .whatsapp-btn { flex: 1; min-width: 150px; padding: 12px 20px; border-radius: 25px; color: white; border: none; cursor: pointer; font-weight: bold; }
-    .pdf-btn { background: linear-gradient(45deg,#e74c3c,#c0392b); }
-    .whatsapp-btn { background: linear-gradient(45deg,#25d366,#128c7e); display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .whatsapp-btn img { width: 20px; height: 20px; }
-
-    /* Checkout */
-    #checkout-summary { background: rgba(255,255,255,0.95); padding: 20px; border-radius: 15px; margin-bottom: 20px; }
-
-    /* Empresas */
-    .empresas { background: white; border-radius: 15px; padding: 20px; margin-top: 50px; overflow: hidden; }
-    .empresas h3 { text-align: center; margin-bottom: 20px; }
-    .logos { display: flex; gap: 60px; animation: scroll 20s linear infinite; width: max-content; }
-    .logos img { height: 80px; object-fit: contain; }
+    .empresas { background:white; border-radius:15px; padding:20px; margin-top:50px; overflow:hidden; }
+    .empresas h3 { text-align:center; margin-bottom:20px; }
+    .logos { display:flex; gap:60px; animation:scroll 20s linear infinite; width:max-content; }
+    .logos img { height:80px; object-fit:contain; }
     @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-    /* WhatsApp flotante */
-    .whatsapp-float { position: fixed; width: 60px; height: 60px; bottom: 20px; right: 20px; background: #25d366; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 2px 2px 10px rgba(0,0,0,0.2); }
-    .whatsapp-float img { width: 35px; }
+    .whatsapp-float { position:fixed; width:60px; height:60px; bottom:20px; right:20px; background:#25d366; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:2px 2px 10px rgba(0,0,0,0.2); }
+    .whatsapp-float img { width:35px; }
   </style>
 </head>
 <body>
@@ -107,9 +90,6 @@
           <img src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Agrosuper_logo.png">
           <img src="https://seeklogo.com/images/S/saida-logo-0F2D55E622-seeklogo.com.png">
           <img src="https://seeklogo.com/images/S/sopraval-logo-8F0ED61874-seeklogo.com.png">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Agrosuper_logo.png">
-          <img src="https://seeklogo.com/images/S/saida-logo-0F2D55E622-seeklogo.com.png">
-          <img src="https://seeklogo.com/images/S/sopraval-logo-8F0ED61874-seeklogo.com.png">
         </div>
       </div>
     </div>
@@ -120,7 +100,7 @@
         <div><span id="cart-count">0</span> productos</div>
         <div class="cart-total">Total: $<span id="cart-total">0</span></div>
         <button class="clear-cart" onclick="clearCart()">Vaciar Carrito</button>
-        <button class="checkout-btn" onclick="showTab(event,'checkout')">Finalizar Compra</button>
+        <button class="checkout-btn" onclick="showTab(null,'checkout')">Finalizar Compra</button>
       </div>
 
       <div class="cart-items" id="cart-items" style="display:none;">
@@ -143,117 +123,3 @@
       <div id="checkout-summary"></div>
       
       <h3>📩 Formulario de contacto</h3>
-      <p>Con esto nos llegará el pedido y te contactaremos de todas formas para darte seguimiento del pedido.</p>
-      <p>Nos tardamos máximo 48 horas hábiles en entregar el pedido.</p>
-      
-      <form id="checkout-form">
-        <input type="text" name="name" placeholder="Nombre completo" required style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc;"><br>
-        <input type="email" name="email" placeholder="Correo electrónico" required style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc;"><br>
-        <input type="tel" name="phone" placeholder="Teléfono" style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc;"><br>
-        <textarea name="message" placeholder="Comentarios adicionales" rows="4" style="width:100%; padding:10px; border-radius:5px; border:1px solid #ccc;"></textarea><br><br>
-        <button type="submit" style="background:#667eea; color:white; padding:12px 20px; border:none; border-radius:5px; cursor:pointer;">Enviar cotización</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- WhatsApp flotante -->
-  <a href="https://wa.me/56977253231?text=¡Hola! Me interesa conocer más sobre sus productos." class="whatsapp-float" target="_blank">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg">
-  </a>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-  <script>
-    emailjs.init("TU_USER_ID"); // reemplaza con tu User ID de EmailJS
-
-    const products=[
-      {id:1,name:"Pimentón Dulce",description:"Pimentón español de calidad",price:2500,image:"https://santaisabel.vtexassets.com/arquivos/ids/176016-900-900?width=900&height=900&aspect=true"},
-      {id:2,name:"Orégano Premium",description:"Orégano seco seleccionado",price:1800,image:"https://upload.wikimedia.org/wikipedia/commons/5/55/Oregano.jpg"},
-      {id:3,name:"Comino Molido",description:"Comino fresco molido",price:2200,image:"https://upload.wikimedia.org/wikipedia/commons/2/26/Cumin.jpg"}
-    ];
-    let cart=[];
-
-    function showTab(event,tab){
-      document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-      document.getElementById(tab).classList.add('active');
-      if(event) event.currentTarget.classList.add('active');
-      updateCheckout();
-    }
-
-    function renderProducts(){
-      document.getElementById('products-grid').innerHTML=products.map(p=>`
-        <div class="product-card">
-          <img src="${p.image}" class="product-image">
-          <div><b>${p.name}</b></div>
-          <div>${p.description}</div>
-          <div><b>$${p.price.toLocaleString()}</b></div>
-          <div><button onclick="addToCart(${p.id})">Agregar 🛒</button></div>
-        </div>`).join('');
-    }
-
-    function addToCart(id){
-      const p=products.find(x=>x.id===id);
-      const e=cart.find(i=>i.id===id);
-      if(e){ e.quantity++; } else { cart.push({...p,quantity:1}); }
-      updateCart();
-    }
-
-    function updateCart(){
-      const count=cart.reduce((s,i)=>s+i.quantity,0),
-            total=cart.reduce((s,i)=>s+i.price*i.quantity,0);
-      document.getElementById('cart-count').textContent=count;
-      document.getElementById('cart-total').textContent=total.toLocaleString();
-
-      const items=document.getElementById('cart-items'),
-            list=document.getElementById('cart-list');
-
-      if(cart.length>0){
-        items.style.display='block';
-        list.innerHTML=cart.map((i,idx)=>`
-          <div>
-            ${i.name} x${i.quantity} - $${(i.price*i.quantity).toLocaleString()}
-            <button onclick="removeItem(${idx})">❌</button>
-          </div>
-        `).join('');
-      } else {
-        items.style.display='none';
-      }
-      updateCheckout();
-    }
-
-    function removeItem(i){ cart.splice(i,1); updateCart(); }
-    function clearCart(){ cart=[]; updateCart(); }
-
-    function updateCheckout(){
-      if(!document.getElementById('checkout-summary')) return;
-      const summary = cart.map(i => 
-        `${i.name} x${i.quantity} - $${(i.price * i.quantity).toLocaleString()}`
-      ).join('<br>');
-      const total = cart.reduce((s,i)=>s+i.price*i.quantity,0);
-      document.getElementById('checkout-summary').innerHTML = cart.length>0 ? 
-        `<p>${summary}</p><h3>Total: $${total.toLocaleString()}</h3>` : "<p>No hay productos en el carrito.</p>";
-    }
-
-    function downloadPDF(){
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.setFontSize(18); doc.text("Distribuidora Mario y María", 20, 20);
-      doc.setFontSize(12); doc.text("Cotización de productos", 20, 30);
-      doc.text("Fecha: "+new Date().toLocaleDateString(), 20, 40);
-      doc.line(20, 45, 190, 45);
-      let y=55;
-      doc.text("Detalle de productos:",20,y); y+=10;
-      cart.forEach((i)=>{doc.text(`${i.name} - Cantidad: ${i.quantity} - Unit: $${i.price.toLocaleString()} - Total: $${(i.price*i.quantity).toLocaleString()}`,20,y); y+=10;});
-      doc.line(20,y,190,y); y+=10;
-      const total=cart.reduce((s,i)=>s+i.price*i.quantity,0);
-      doc.setFontSize(14); doc.text(`TOTAL: $${total.toLocaleString()}`,20,y); y+=15;
-      doc.save("Cotizacion_Distribuidora.pdf");
-    }
-
-    function sendWhatsApp(){ alert("Aquí se podría enviar la cotización vía WhatsApp"); }
-
-    // FORMULARIO EMAILJS
-    const form = document.getElementById('checkout-form');
-    form.addEventListener('submit', function(e){
-     
