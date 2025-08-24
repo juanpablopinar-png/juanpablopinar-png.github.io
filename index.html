@@ -1,116 +1,326 @@
-<!-- ...HTML y CSS igual que antes, sin cambios importantes en estilos -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Distribuidora Mario y María</title>
+  <style>
+    /* --- Colores principales --- */
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      background-color: #fdf9f0; /* fondo cálido */
+      color: #333;
+    }
 
-<!-- Empresas -->
-<div class="empresas">
-  <h3>Empresas con las que trabajamos</h3>
-  <div class="logos-wrapper" style="overflow:hidden;">
-    <div class="logos">
-      <!-- Repite logos varias veces para efecto continuo -->
-      <img src="https://www.publimark.cl/contenidos/img/2022/02/Agrosuper-logo-antes-Publimark.jpg">
-      <img src="https://www.superpollo.cl//img/pollitoLogo1990.webp">
-      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLC4xu-bKwfR-MBNSuaXGWXfAUikOEMRbwVA&s">
-      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaibLO9D-fmYwY3cGK8ve9GmWNMcqHypsFYw&s">
-      <!-- Repetidos para scroll -->
-      <img src="https://www.publimark.cl/contenidos/img/2022/02/Agrosuper-logo-antes-Publimark.jpg">
-      <img src="https://www.superpollo.cl//img/pollitoLogo1990.webp">
-      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLC4xu-bKwfR-MBNSuaXGWXfAUikOEMRbwVA&s">
-      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaibLO9D-fmYwY3cGK8ve9GmWNMcqHypsFYw&s">
+    header {
+      background-color: #2e7d32; /* verde intenso */
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      gap: 10px;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      background-color: #66bb6a;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .tab-btn.active {
+      background-color: #2e7d32;
+    }
+
+    .tab-content {
+      display: none;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Productos */
+    #products-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .product-card {
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+      padding: 15px;
+      width: 250px;
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    }
+
+    .product-card button {
+      margin-top: 10px;
+      padding: 10px 15px;
+      background-color: #66bb6a;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .product-card button:hover {
+      background-color: #2e7d32;
+    }
+
+    /* Carrito */
+    #cart {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    #cart button {
+      padding: 12px 20px;
+      font-size: 1.1rem;
+      background-color: #f57c00;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #cart button:hover {
+      background-color: #ef6c00;
+    }
+
+    .remove-btn {
+      background-color: #e53935;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+
+    .remove-btn:hover {
+      background-color: #c62828;
+    }
+
+    /* Checkout */
+    #checkout-summary {
+      margin-top: 15px;
+    }
+
+    /* Logos de empresas */
+    .empresas {
+      margin-top: 50px;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .logos-wrapper {
+      overflow: hidden;
+    }
+
+    .logos {
+      display: flex;
+      gap: 40px;
+      animation: scroll 20s linear infinite;
+      align-items: center;
+    }
+
+    .logos img {
+      height: 60px;
+      object-fit: contain;
+    }
+
+    @keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Distribuidora Mario y María</h1>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="products">Productos</button>
+    <button class="tab-btn" data-tab="cart-tab">Carrito</button>
+    <button class="tab-btn" data-tab="checkout">Checkout</button>
+  </div>
+
+  <!-- Productos -->
+  <div id="products" class="tab-content active">
+    <div id="products-grid"></div>
+  </div>
+
+  <!-- Carrito -->
+  <div id="cart-tab" class="tab-content">
+    <div id="cart">
+      <h3>Carrito de Compras (<span id="cart-count">0</span>)</h3>
+      <div id="cart-items" style="display:none;">
+        <div id="cart-list"></div>
+        <p>Total: $<span id="cart-total">0</span></p>
+        <button onclick="switchTab('checkout')">Finalizar compra</button>
+        <button onclick="clearCart()">Vaciar carrito</button>
+      </div>
     </div>
   </div>
-</div>
 
-<script>
-  // Manejo de tabs
-  const tabs = document.querySelectorAll('.tab-btn');
-  const contents = document.querySelectorAll('.tab-content');
+  <!-- Checkout -->
+  <div id="checkout" class="tab-content">
+    <h3>Resumen de Compra</h3>
+    <div id="checkout-summary"></div>
+  </div>
 
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
+  <!-- Empresas -->
+  <div class="empresas">
+    <h3>Empresas con las que trabajamos</h3>
+    <div class="logos-wrapper">
+      <div class="logos">
+        <img src="https://www.publimark.cl/contenidos/img/2022/02/Agrosuper-logo-antes-Publimark.jpg">
+        <img src="https://www.superpollo.cl//img/pollitoLogo1990.webp">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLC4xu-bKwfR-MBNSuaXGWXfAUikOEMRbwVA&s">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaibLO9D-fmYwY3cGK8ve9GmWNMcqHypsFYw&s">
+        <img src="https://www.publimark.cl/contenidos/img/2022/02/Agrosuper-logo-antes-Publimark.jpg">
+        <img src="https://www.superpollo.cl//img/pollitoLogo1990.webp">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLC4xu-bKwfR-MBNSuaXGWXfAUikOEMRbwVA&s">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaibLO9D-fmYwY3cGK8ve9GmWNMcqHypsFYw&s">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Datos de ejemplo
+    const products = [
+      {id:1, name:"Almendras", description:"Almendras naturales 250g", price:3500, image:"https://upload.wikimedia.org/wikipedia/commons/8/86/Almonds.jpg"},
+      {id:2, name:"Nueces", description:"Nueces frescas 200g", price:4200, image:"https://upload.wikimedia.org/wikipedia/commons/6/6f/Walnuts.jpg"},
+      {id:3, name:"Ají molido", description:"Ají molido picante 100g", price:1500, image:"https://upload.wikimedia.org/wikipedia/commons/4/44/Chili_powder.jpg"},
+      {id:4, name:"Orégano", description:"Orégano seco 50g", price:1200, image:"https://upload.wikimedia.org/wikipedia/commons/5/55/Oregano_dried.jpg"}
+    ];
+
+    // Manejo de tabs
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        contents.forEach(c => c.classList.remove('active'));
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Carrito
+    let cart = [];
+    const productsGrid = document.getElementById('products-grid');
+    const cartCount = document.getElementById('cart-count');
+    const cartTotal = document.getElementById('cart-total');
+    const cartItemsDiv = document.getElementById('cart-items');
+    const cartList = document.getElementById('cart-list');
+
+    function renderProducts() {
+      products.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+          <img src="${p.image}" class="product-image" style="width:100%; height:150px; object-fit:cover;">
+          <h4>${p.name}</h4>
+          <p>${p.description}</p>
+          <p><strong>$${p.price}</strong></p>
+          <button onclick="addToCart(${p.id})">Agregar al carrito</button>
+        `;
+        productsGrid.appendChild(card);
+      });
+    }
+
+    function addToCart(id) {
+      const product = products.find(p => p.id === id);
+      cart.push(product);
+      updateCart();
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCart();
+    }
+
+    function clearCart() {
+      cart = [];
+      updateCart();
+    }
+
+    function updateCart() {
+      cartCount.textContent = cart.length;
+      cartTotal.textContent = cart.reduce((sum, p) => sum + p.price, 0);
+      if(cart.length > 0){
+        cartItemsDiv.style.display = 'block';
+        cartList.innerHTML = '';
+        cart.forEach((p,i) => {
+          const item = document.createElement('div');
+          item.innerHTML = `${p.name} - $${p.price} <button class="remove-btn" onclick="removeFromCart(${i})">X</button>`;
+          cartList.appendChild(item);
+        });
+      } else {
+        cartItemsDiv.style.display = 'none';
+      }
+    }
+
+    function switchTab(tabName) {
       tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
       contents.forEach(c => c.classList.remove('active'));
-      document.getElementById(tab.dataset.tab).classList.add('active');
-    });
-  });
+      document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
+      document.getElementById(tabName).classList.add('active');
 
-  // Carrito
-  let cart = [];
-
-  const productsGrid = document.getElementById('products-grid');
-  const cartCount = document.getElementById('cart-count');
-  const cartTotal = document.getElementById('cart-total');
-  const cartItemsDiv = document.getElementById('cart-items');
-  const cartList = document.getElementById('cart-list');
-
-  function renderProducts() {
-    products.forEach(p => {
-      const card = document.createElement('div');
-      card.className = 'product-card';
-      card.innerHTML = `
-        <img src="${p.image}" class="product-image">
-        <h4>${p.name}</h4>
-        <p>${p.description}</p>
-        <p><strong>$${p.price}</strong></p>
-        <button onclick="addToCart(${p.id})">Agregar al carrito</button>
-      `;
-      productsGrid.appendChild(card);
-    });
-  }
-
-  function addToCart(id) {
-    const product = products.find(p => p.id === id);
-    cart.push(product);
-    updateCart();
-  }
-
-  function removeFromCart(index) {
-    cart.splice(index, 1);
-    updateCart();
-  }
-
-  function clearCart() {
-    cart = [];
-    updateCart();
-  }
-
-  function updateCart() {
-    cartCount.textContent = cart.length;
-    cartTotal.textContent = cart.reduce((sum, p) => sum + p.price, 0);
-    if(cart.length > 0){
-      cartItemsDiv.style.display = 'block';
-      cartList.innerHTML = '';
-      cart.forEach((p,i) => {
-        const item = document.createElement('div');
-        item.innerHTML = `${p.name} - $${p.price} <button class="remove-btn" onclick="removeFromCart(${i})">X</button>`;
-        cartList.appendChild(item);
-      });
-    } else {
-      cartItemsDiv.style.display = 'none';
+      // Checkout
+      if(tabName === 'checkout') {
+        const summary = document.getElementById('checkout-summary');
+        summary.innerHTML = '';
+        cart.forEach(p => {
+          const div = document.createElement('div');
+          div.textContent = `${p.name} - $${p.price}`;
+          summary.appendChild(div);
+        });
+        const totalDiv = document.createElement('div');
+        totalDiv.style.fontWeight='bold';
+        totalDiv.style.marginTop='10px';
+        totalDiv.textContent = `Total: $${cart.reduce((sum,p)=>sum+p.price,0)}`;
+        summary.appendChild(totalDiv);
+      }
     }
-  }
 
-  function switchTab(tabName) {
-    tabs.forEach(t => t.classList.remove('active'));
-    contents.forEach(c => c.classList.remove('active'));
-    document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
-    document.getElementById(tabName).classList.add('active');
-
-    // Si vamos a checkout, generar resumen
-    if(tabName === 'checkout') {
-      const summary = document.getElementById('checkout-summary');
-      summary.innerHTML = '';
-      cart.forEach(p => {
-        const div = document.createElement('div');
-        div.textContent = `${p.name} - $${p.price}`;
-        summary.appendChild(div);
-      });
-      const totalDiv = document.createElement('div');
-      totalDiv.style.fontWeight='bold';
-      totalDiv.style.marginTop='10px';
-      totalDiv.textContent = `Total: $${cart.reduce((sum,p)=>sum+p.price,0)}`;
-      summary.appendChild(totalDiv);
-    }
-  }
-
-  renderProducts();
-</script>
+    renderProducts();
+  </script>
+</body>
+</html>
