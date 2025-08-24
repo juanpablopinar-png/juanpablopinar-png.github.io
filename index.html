@@ -123,3 +123,147 @@
       <div id="checkout-summary"></div>
       
       <h3>📩 Formulario de contacto</h3>
+      <p>Con esto nos llegará el pedido y te contactaremos de todas formas para darte seguimiento del pedido. Nos tardamos máximo 48 horas hábiles en entregar el pedido.</p>
+      <form id="checkout-form">
+        <input type="text" name="name" placeholder="Nombre" required><br><br>
+        <input type="email" name="email" placeholder="Correo electrónico" required><br><br>
+        <input type="tel" name="phone" placeholder="Teléfono"><br><br>
+        <textarea name="message" placeholder="Comentarios adicionales" rows="4"></textarea><br><br>
+        <button type="submit">Enviar cotización</button>
+      </form>
+    </div>
+  </div>
+
+  <a href="https://wa.me/56977253231?text=¡Hola! Me interesa conocer más sobre sus productos." class="whatsapp-float" target="_blank">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg">
+  </a>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2.6.4/dist/email.min.js"></script>
+  <script>
+    emailjs.init("TU_USER_ID"); // reemplaza TU_USER_ID con tu public key de EmailJS
+
+    const products=[
+      {id:1,name:"Pimentón Dulce",description:"Pimentón español de calidad",price:2500,image:"https://santaisabel.vtexassets.com/arquivos/ids/176016-900-900?width=900&height=900&aspect=true"},
+      {id:2,name:"Orégano Premium",description:"Orégano seco seleccionado",price:1800,image:"https://upload.wikimedia.org/wikipedia/commons/5/55/Oregano.jpg"},
+      {id:3,name:"Comino Molido",description:"Comino fresco molido",price:2200,image:"https://upload.wikimedia.org/wikipedia/commons/2/26/Cumin.jpg"}
+    ];
+    let cart=[];
+
+    function showTab(event, tab){
+      document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.getElementById(tab).classList.add('active');
+      if(event && event.currentTarget){
+        event.currentTarget.classList.add('active');
+      } else {
+        const btnMap = {inicio:0, catalogo:1, checkout:2};
+        const btns = document.querySelectorAll('.tab-btn');
+        if(btnMap[tab]!==undefined) btns[btnMap[tab]].classList.add('active');
+      }
+      updateCheckout();
+    }
+
+    function renderProducts(){
+      document.getElementById('products-grid').innerHTML=products.map(p=>`
+        <div class="product-card">
+          <img src="${p.image}" class="product-image">
+          <div><b>${p.name}</b></div>
+          <div>${p.description}</div>
+          <div><b>$${p.price.toLocaleString()}</b></div>
+          <div><button onclick="addToCart(${p.id})">Agregar 🛒</button></div>
+        </div>`).join('');
+    }
+
+    function addToCart(id){
+      const p=products.find(x=>x.id===id);
+      const e=cart.find(i=>i.id===id);
+      if(e){ e.quantity++; } else { cart.push({...p,quantity:1}); }
+      updateCart();
+    }
+
+    function updateCart(){
+      const count=cart.reduce((s,i)=>s+i.quantity,0),
+            total=cart.reduce((s,i)=>s+i.price*i.quantity,0);
+      document.getElementById('cart-count').textContent=count;
+      document.getElementById('cart-total').textContent=total.toLocaleString();
+
+      const items=document.getElementById('cart-items'),
+            list=document.getElementById('cart-list');
+
+      if(cart.length>0){
+        items.style.display='block';
+        list.innerHTML=cart.map((i,idx)=>`
+          <div>
+            ${i.name} x${i.quantity} - $${(i.price*i.quantity).toLocaleString()}
+            <button onclick="removeItem(${idx})">❌</button>
+          </div>
+        `).join('');
+      } else {
+        items.style.display='none';
+      }
+      updateCheckout();
+    }
+
+    function removeItem(i){ cart.splice(i,1); updateCart(); }
+    function clearCart(){ cart=[]; updateCart(); }
+
+    function updateCheckout(){
+      if(!document.getElementById('checkout-summary')) return;
+      const summary = cart.map(i => 
+        `${i.name} x${i.quantity} - $${(i.price * i.quantity).toLocaleString()}`
+      ).join('<br>');
+      const total = cart.reduce((s,i)=>s+i.price*i.quantity,0);
+      document.getElementById('checkout-summary').innerHTML = cart.length>0 ? 
+        `<p>${summary}</p><h3>Total: $${total.toLocaleString()}</h3>` : "<p>No hay productos en el carrito.</p>";
+    }
+
+    function downloadPDF(){
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(18); doc.text("Distribuidora Mario y María", 20, 20);
+      doc.setFontSize(12); doc.text("Cotización de productos", 20, 30);
+      doc.text("Fecha: "+new Date().toLocaleDateString(), 20, 40);
+      doc.line(20, 45, 190, 45);
+      let y=55;
+      doc.text("Detalle de productos:",20,y); y+=10;
+      cart.forEach((i)=>{doc.text(`${i.name} - Cantidad: ${i.quantity} - Unit: $${i.price.toLocaleString()} - Total: $${(i.price*i.quantity).toLocaleString()}`,20,y); y+=10;});
+      doc.line(20,y,190,y); y+=10;
+      const total=cart.reduce((s,i)=>s+i.price*i.quantity,0);
+      doc.setFontSize(14); doc.text(`TOTAL: $${total.toLocaleString()}`,20,y); y+=15;
+      doc.save("Cotizacion_Distribuidora.pdf");
+    }
+
+    function sendWhatsApp(){ alert("Aquí se podría enviar la cotización vía WhatsApp"); }
+
+    document.getElementById("checkout-form").addEventListener("submit", function(e){
+      e.preventDefault();
+      if(cart.length===0){ alert("El carrito está vacío"); return; }
+
+      const form = e.target;
+      const productos = cart.map(i => `${i.name} x${i.quantity} - $${(i.price*i.quantity).toLocaleString()}`).join('\n');
+      const total = cart.reduce((s,i)=>s+i.price*i.quantity,0);
+
+      const templateParams = {
+        to_email: "juanpablo.pinar14@gmail.com",
+        from_name: form.name.value,
+        from_email: form.email.value,
+        phone: form.phone.value,
+        message: form.message.value,
+        productos: productos,
+        total: `$${total.toLocaleString()}`
+      };
+
+      emailjs.send("TU_SERVICE_ID","TU_TEMPLATE_ID", templateParams)
+        .then(function(response){
+          alert("¡Tu cotización ha sido enviada correctamente!");
+          form.reset(); cart=[]; updateCart(); showTab(null,'catalogo');
+        }, function(error){
+          alert("Ocurrió un error al enviar el formulario, intenta nuevamente.");
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded",renderProducts);
+  </script>
+</body>
+</html>
