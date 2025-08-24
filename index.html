@@ -71,7 +71,6 @@
   </style>
 </head>
 <body>
-  <!-- Banner fijo -->
   <div class="banner">🚚 Envíos gratis RM para pedidos superiores a $30.000</div>
 
   <div class="header">
@@ -144,12 +143,15 @@
       <div id="checkout-summary"></div>
       
       <h3>📩 Formulario de contacto</h3>
+      <p>Con esto nos llegará el pedido y te contactaremos de todas formas para darte seguimiento del pedido.</p>
+      <p>Nos tardamos máximo 48 horas hábiles en entregar el pedido.</p>
+      
       <form id="checkout-form">
-        <input type="text" placeholder="Nombre" required><br><br>
-        <input type="email" placeholder="Correo electrónico" required><br><br>
-        <input type="tel" placeholder="Teléfono"><br><br>
-        <textarea placeholder="Comentarios adicionales" rows="4"></textarea><br><br>
-        <button type="submit">Enviar cotización</button>
+        <input type="text" name="name" placeholder="Nombre completo" required style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc;"><br>
+        <input type="email" name="email" placeholder="Correo electrónico" required style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc;"><br>
+        <input type="tel" name="phone" placeholder="Teléfono" style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc;"><br>
+        <textarea name="message" placeholder="Comentarios adicionales" rows="4" style="width:100%; padding:10px; border-radius:5px; border:1px solid #ccc;"></textarea><br><br>
+        <button type="submit" style="background:#667eea; color:white; padding:12px 20px; border:none; border-radius:5px; cursor:pointer;">Enviar cotización</button>
       </form>
     </div>
   </div>
@@ -160,7 +162,10 @@
   </a>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
+    emailjs.init("TU_USER_ID"); // reemplaza con tu User ID de EmailJS
+
     const products=[
       {id:1,name:"Pimentón Dulce",description:"Pimentón español de calidad",price:2500,image:"https://santaisabel.vtexassets.com/arquivos/ids/176016-900-900?width=900&height=900&aspect=true"},
       {id:2,name:"Orégano Premium",description:"Orégano seco seleccionado",price:1800,image:"https://upload.wikimedia.org/wikipedia/commons/5/55/Oregano.jpg"},
@@ -248,7 +253,7 @@
 
     function sendWhatsApp(){ alert("Aquí se podría enviar la cotización vía WhatsApp"); }
 
-    document.addEventListener("DOMContentLoaded",renderProducts);
-  </script>
-</body>
-</html>
+    // FORMULARIO EMAILJS
+    const form = document.getElementById('checkout-form');
+    form.addEventListener('submit', function(e){
+     
