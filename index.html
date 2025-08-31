@@ -1,207 +1,939 @@
-<script>
-    // Variables globales
-    let chart = null;
-    let isSimulating = false;
-    
-    // Inicialización
-    function initializeApp() {
-        if (typeof Chart === 'undefined') {
-            setTimeout(initializeApp, 100);
-            return;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Acciones Inteligente</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        setupEventListeners();
-        runSimulation(); // Simulación inicial
-    }
 
-    function setupEventListeners() {
-        // Slider de volatilidad
-        const volatilitySlider = document.getElementById('volatility');
-        const volatilityValue = document.getElementById('volatilityValue');
-        volatilitySlider.addEventListener('input', function() {
-            volatilityValue.textContent = this.value + '%';
-        });
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-        // Botón de simulación
-        const simulateBtn = document.getElementById('simulateBtn');
-        simulateBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (!isSimulating) runSimulation();
-        });
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
 
-        // Enter en símbolo
-        document.getElementById('stockSymbol').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !isSimulating) {
-                runSimulation();
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input, select {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .calculated-params {
+            background: linear-gradient(135deg, #fff9e6 0%, #ffeaa7 100%);
+            border: 1px solid #f39c12;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .param-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .param-item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .param-label {
+            font-weight: 600;
+            color: #856404;
+            font-size: 13px;
+        }
+
+        .param-value {
+            color: #533f03;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card.price {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .stat-card.target {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .stat-card.volatility {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .stat-card.trend {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        .stat-card.return {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+
+        .stat-card.risk {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .stat-card .value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left-color: #dc3545;
+        }
+
+        .success {
+            background: #d1e7dd;
+            color: #0f5132;
+            border-left-color: #198754;
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .analysis {
+            background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+
+        .analysis h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .analysis-item {
+            margin: 10px 0;
+            color: #34495e;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(52, 73, 94, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Simulador Inteligente de Acciones</h1>
+            <p>Cálculo automático de volatilidad y tendencia basado en análisis histórico</p>
+            <div class="status" id="statusDiv">Listo para analizar - Inicia con GOOGL</div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="stockSymbol">🏷️ Símbolo de la Acción:</label>
+                <input type="text" id="stockSymbol" placeholder="Ej: GOOGL, AAPL, TSLA" value="GOOGL">
+            </div>
+            
+            <div class="control-group">
+                <label for="timeHorizon">⏰ Período de Predicción:</label>
+                <select id="timeHorizon">
+                    <option value="30">30 días</option>
+                    <option value="60">60 días</option>
+                    <option value="90" selected>90 días</option>
+                    <option value="180">6 meses</option>
+                    <option value="365">1 año</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="scenarios">🎯 Número de Escenarios:</label>
+                <select id="scenarios">
+                    <option value="3" selected>3 escenarios</option>
+                    <option value="5">5 escenarios</option>
+                    <option value="10">10 escenarios</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <button class="btn" id="simulateBtn" onclick="executeSimulation()">🚀 Analizar y Predecir</button>
+            </div>
+        </div>
+
+        <div class="calculated-params" id="calculatedParams" style="display: none;">
+            <h4 style="color: #856404; margin-bottom: 15px;">🔍 Parámetros Calculados Automáticamente</h4>
+            <div class="param-grid">
+                <div class="param-item">
+                    <span class="param-label">📊 Volatilidad Calculada</span>
+                    <span class="param-value" id="calcVolatility">-</span>
+                </div>
+                <div class="param-item">
+                    <span class="param-label">📈 Tendencia Detectada</span>
+                    <span class="param-value" id="calcTrend">-</span>
+                </div>
+                <div class="param-item">
+                    <span class="param-label">💹 Momentum</span>
+                    <span class="param-value" id="calcMomentum">-</span>
+                </div>
+                <div class="param-item">
+                    <span class="param-label">⚠️ Nivel de Riesgo</span>
+                    <span class="param-value" id="riskLevel">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="loadingDiv" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Analizando comportamiento histórico de <span id="loadingStock"></span>...</p>
+        </div>
+
+        <div id="messageDiv" style="display: none;"></div>
+
+        <div class="chart-container">
+            <canvas id="stockChart"></canvas>
+        </div>
+
+        <div class="analysis" id="analysisDiv" style="display: none;">
+            <h3>🎯 Análisis Automático Inteligente</h3>
+            <div id="analysisContent"></div>
+        </div>
+
+        <div class="stats" id="statsContainer">
+            <div class="stat-card price">
+                <h3>Precio Actual</h3>
+                <div class="value" id="currentPrice">$150.00</div>
+            </div>
+            <div class="stat-card target">
+                <h3>Precio Objetivo</h3>
+                <div class="value" id="avgFinalPrice">$155.00</div>
+            </div>
+            <div class="stat-card volatility">
+                <h3>Volatilidad Auto</h3>
+                <div class="value" id="volatilityDisplay">20.0%</div>
+            </div>
+            <div class="stat-card trend">
+                <h3>Tendencia Auto</h3>
+                <div class="value" id="trendDisplay">Neutral</div>
+            </div>
+            <div class="stat-card return">
+                <h3>Retorno Esperado</h3>
+                <div class="value" id="expectedReturn">3.33%</div>
+            </div>
+            <div class="stat-card risk">
+                <h3>Confianza IA</h3>
+                <div class="value" id="confidence">85%</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let chart = null;
+        let isSimulating = false;
+        let stockDatabase = {};
+
+        // Base de datos de características de acciones reales
+        function initializeStockDatabase() {
+            stockDatabase = {
+                'GOOGL': { basePrice: 145, sector: 'tech', historicalVol: 26, trendBias: 0.0006, beta: 1.1 },
+                'AAPL': { basePrice: 175, sector: 'tech', historicalVol: 23, trendBias: 0.0005, beta: 1.2 },
+                'TSLA': { basePrice: 248, sector: 'auto', historicalVol: 47, trendBias: 0.0002, beta: 2.1 },
+                'MSFT': { basePrice: 348, sector: 'tech', historicalVol: 21, trendBias: 0.0007, beta: 0.9 },
+                'AMZN': { basePrice: 138, sector: 'retail', historicalVol: 29, trendBias: 0.0003, beta: 1.3 },
+                'META': { basePrice: 318, sector: 'social', historicalVol: 36, trendBias: 0.0001, beta: 1.4 },
+                'NVDA': { basePrice: 445, sector: 'chip', historicalVol: 41, trendBias: 0.0009, beta: 1.8 },
+                'NFLX': { basePrice: 395, sector: 'streaming', historicalVol: 31, trendBias: 0.0002, beta: 1.2 },
+                'BABA': { basePrice: 82, sector: 'ecommerce', historicalVol: 39, trendBias: -0.0001, beta: 1.6 },
+                'UBER': { basePrice: 68, sector: 'transport', historicalVol: 44, trendBias: 0.0001, beta: 1.7 },
+                'AMD': { basePrice: 118, sector: 'chip', historicalVol: 45, trendBias: 0.0004, beta: 1.9 },
+                'CRM': { basePrice: 248, sector: 'saas', historicalVol: 33, trendBias: 0.0005, beta: 1.1 },
+                'SPOT': { basePrice: 200, sector: 'streaming', historicalVol: 36, trendBias: 0.0003, beta: 1.3 },
+                'ZM': { basePrice: 80, sector: 'saas', historicalVol: 48, trendBias: -0.0002, beta: 1.5 }
+            };
+        }
+
+        // Función principal de simulación
+        function executeSimulation() {
+            if (isSimulating) {
+                console.log('Simulación ya en curso, esperando...');
+                return;
             }
-        });
-
-        console.log('Event listeners configurados correctamente');
-    }
-
-    // Generar datos históricos
-    function generateHistoricalData(symbol, days = 30) {
-        const data = [];
-        const startPrice = getBasePrice(symbol);
-        let price = startPrice;
-        const today = new Date();
-
-        for (let i = days; i >= 0; i--) {
-            const date = new Date(today);
-            date.setDate(date.getDate() - i);
-            const change = (Math.random() - 0.48) * 0.03;
-            price = Math.max(price * (1 + change), startPrice * 0.5);
-            data.push({ date: date.toISOString().split('T')[0], price });
-        }
-        return data;
-    }
-
-    function getBasePrice(symbol) {
-        const basePrices = {
-            'GOOGL': 150, 'AAPL': 180, 'TSLA': 250, 'MSFT': 350,
-            'AMZN': 140, 'META': 320, 'NVDA': 450, 'NFLX': 400,
-            'BABA': 80, 'UBER': 70, 'SPOT': 200, 'DEFAULT': 100
-        };
-        return basePrices[symbol.toUpperCase()] || basePrices['DEFAULT'];
-    }
-
-    function simulateFuturePrice(currentPrice, days, volatility, trend) {
-        const data = [];
-        let price = currentPrice;
-        const trendMultipliers = { bullish: 0.0008, neutral: 0.0002, bearish: -0.0004 };
-        const drift = trendMultipliers[trend];
-        const dailyVolatility = volatility / 100 / Math.sqrt(252);
-        const today = new Date();
-
-        data.push({ date: today.toISOString().split('T')[0], price });
-        for (let i = 1; i <= days; i++) {
-            const date = new Date(today);
-            date.setDate(date.getDate() + i);
-            const randomShock = (Math.random() - 0.5) * 2;
-            const dailyReturn = drift + dailyVolatility * randomShock;
-            price = Math.max(price * (1 + dailyReturn), currentPrice * 0.2);
-            data.push({ date: date.toISOString().split('T')[0], price });
-        }
-        return data;
-    }
-
-    function runSimulation() {
-        if (isSimulating) return;
-        isSimulating = true;
-
-        const symbol = (document.getElementById('stockSymbol').value || 'GOOGL').toUpperCase();
-        const days = parseInt(document.getElementById('timeHorizon').value) || 90;
-        const volatility = parseInt(document.getElementById('volatility').value) || 20;
-        const trend = document.getElementById('trend').value || 'neutral';
-        const numScenarios = parseInt(document.getElementById('scenarios').value) || 3;
-
-        updateStatus('Ejecutando simulación...');
-        showLoading(symbol);
-
-        setTimeout(() => {
-            try {
-                const historicalData = generateHistoricalData(symbol, 30);
-                const currentPrice = historicalData[historicalData.length - 1].price;
-
-                const scenarios = [];
-                const allFinalPrices = [];
-                for (let i = 0; i < numScenarios; i++) {
-                    const futureData = simulateFuturePrice(currentPrice, days, volatility, trend);
-                    scenarios.push(futureData);
-                    allFinalPrices.push(futureData[futureData.length - 1].price);
+            
+            isSimulating = true;
+            console.log('🚀 Iniciando análisis inteligente...');
+            
+            const symbol = (document.getElementById('stockSymbol').value || 'GOOGL').toUpperCase().trim();
+            const days = parseInt(document.getElementById('timeHorizon').value) || 90;
+            const numScenarios = parseInt(document.getElementById('scenarios').value) || 3;
+            
+            updateStatus(`Analizando ${symbol}...`);
+            showLoading(symbol);
+            
+            // Usar setTimeout para asegurar que la UI se actualice
+            setTimeout(function() {
+                try {
+                    console.log(`Analizando ${symbol} para ${days} días con ${numScenarios} escenarios`);
+                    
+                    // 1. Generar datos históricos realistas para análisis
+                    const historicalData = generateRealisticHistoricalData(symbol, 60);
+                    const currentPrice = historicalData[historicalData.length - 1].price;
+                    
+                    // 2. CALCULAR AUTOMÁTICAMENTE parámetros basados en datos históricos
+                    const calculatedVolatility = calculateHistoricalVolatility(historicalData, symbol);
+                    const detectedTrend = detectTrendFromData(historicalData, symbol);
+                    const momentum = calculateMomentumIndicator(historicalData);
+                    
+                    console.log(`Parámetros calculados: Vol=${calculatedVolatility.toFixed(1)}%, Trend=${detectedTrend}`);
+                    
+                    // 3. Mostrar parámetros calculados
+                    showCalculatedParameters(symbol, calculatedVolatility, detectedTrend, momentum);
+                    
+                    updateStatus('Generando escenarios predictivos...');
+                    
+                    // 4. Simular múltiples escenarios usando parámetros calculados
+                    const scenarios = [];
+                    const allFinalPrices = [];
+                    
+                    for (let i = 0; i < numScenarios; i++) {
+                        const scenario = simulateFutureScenario(
+                            currentPrice, days, calculatedVolatility, detectedTrend, i
+                        );
+                        scenarios.push(scenario);
+                        allFinalPrices.push(scenario[scenario.length - 1].price);
+                    }
+                    
+                    // 5. Calcular estadísticas finales
+                    const avgFinalPrice = allFinalPrices.reduce((a, b) => a + b, 0) / allFinalPrices.length;
+                    const expectedReturn = ((avgFinalPrice - currentPrice) / currentPrice) * 100;
+                    const confidence = calculateConfidenceLevel(calculatedVolatility, historicalData.length);
+                    
+                    // 6. Actualizar interfaz
+                    updateChart(historicalData, scenarios, symbol);
+                    updateAllStats(currentPrice, avgFinalPrice, expectedReturn, calculatedVolatility, detectedTrend, confidence);
+                    generateAutomaticAnalysis(symbol, calculatedVolatility, detectedTrend, expectedReturn);
+                    
+                    hideLoading();
+                    showMessage(`✅ Análisis completado: ${symbol} | Volatilidad: ${calculatedVolatility.toFixed(1)}% | Tendencia: ${getTrendEmoji(detectedTrend)}`, 'success');
+                    updateStatus(`${symbol} analizado exitosamente - ${new Date().toLocaleTimeString()}`);
+                    
+                } catch (error) {
+                    console.error('Error en simulación:', error);
+                    hideLoading();
+                    showMessage('❌ Error en análisis: ' + error.message, 'error');
+                    updateStatus('Error en análisis');
+                } finally {
+                    isSimulating = false;
                 }
+            }, 1200);
+        }
 
-                const avgFinalPrice = allFinalPrices.reduce((a, b) => a + b, 0) / allFinalPrices.length;
-                const expectedReturn = ((avgFinalPrice - currentPrice) / currentPrice) * 100;
-                const variance = allFinalPrices.reduce((acc, price) => acc + Math.pow(price - avgFinalPrice, 2), 0) / allFinalPrices.length;
-                const standardDeviation = Math.sqrt(variance);
-                const riskPercent = (standardDeviation / currentPrice) * 100;
-
-                updateChart(historicalData, scenarios, symbol);
-                updateStats(currentPrice, avgFinalPrice, expectedReturn, riskPercent);
-                hideLoading();
-                showMessage(`✅ Simulación completada para ${symbol} con ${numScenarios} escenarios`, 'success');
-                updateStatus(`Última simulación: ${symbol} - ${new Date().toLocaleTimeString()}`);
-            } catch (error) {
-                hideLoading();
-                showMessage('❌ Error en la simulación: ' + error.message, 'error');
-                updateStatus('Error en simulación');
-            } finally {
-                isSimulating = false;
+        // Generar datos históricos más realistas
+        function generateRealisticHistoricalData(symbol, days = 60) {
+            const stockInfo = stockDatabase[symbol] || { basePrice: 100, historicalVol: 25, trendBias: 0 };
+            const data = [];
+            let price = stockInfo.basePrice;
+            
+            const today = new Date();
+            
+            for (let i = days; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                
+                // Factores que influyen en el precio histórico
+                const baseVolatility = stockInfo.historicalVol / 100 / Math.sqrt(252);
+                const longTermTrend = stockInfo.trendBias;
+                const marketCycle = Math.sin(i / 20) * 0.004; // Ciclos de mercado
+                const randomComponent = (Math.random() - 0.5) * baseVolatility * 1.8;
+                const momentumDecay = Math.exp(-i / (days * 0.8)); // Momentum reciente
+                
+                const totalChange = longTermTrend + marketCycle + randomComponent * momentumDecay;
+                price = Math.max(price * (1 + totalChange), stockInfo.basePrice * 0.4);
+                
+                data.push({
+                    date: date.toISOString().split('T')[0],
+                    price: price
+                });
             }
-        }, 1000);
-    }
+            
+            return data;
+        }
 
-    function updateChart(historicalData, scenarios, symbol) {
-        const ctx = document.getElementById('stockChart').getContext('2d');
-        if (chart) chart.destroy();
+        // CALCULAR VOLATILIDAD AUTOMÁTICAMENTE basada en datos históricos
+        function calculateHistoricalVolatility(historicalData, symbol) {
+            if (historicalData.length < 10) return 20;
+            
+            const stockInfo = stockDatabase[symbol] || { historicalVol: 25 };
+            
+            // Método 1: Volatilidad de retornos logarítmicos (estándar financiero)
+            const logReturns = [];
+            for (let i = 1; i < historicalData.length; i++) {
+                const return_t = Math.log(historicalData[i].price / historicalData[i-1].price);
+                logReturns.push(return_t);
+            }
+            
+            // Calcular desviación estándar
+            const meanReturn = logReturns.reduce((sum, ret) => sum + ret, 0) / logReturns.length;
+            const variance = logReturns.reduce((sum, ret) => sum + Math.pow(ret - meanReturn, 2), 0) / (logReturns.length - 1);
+            const dailyVolatility = Math.sqrt(variance);
+            
+            // Anualizar multiplicando por √252 días de trading
+            const annualizedVolatility = dailyVolatility * Math.sqrt(252) * 100;
+            
+            // Método 2: Volatilidad basada en rango de precios
+            const prices = historicalData.map(d => d.price);
+            const maxPrice = Math.max(...prices);
+            const minPrice = Math.min(...prices);
+            const rangeVolatility = ((maxPrice - minPrice) / minPrice) * 100;
+            
+            // Combinar métodos con peso hacia el perfil conocido de la acción
+            const combinedVolatility = (annualizedVolatility * 0.5 + rangeVolatility * 0.3 + stockInfo.historicalVol * 0.2);
+            
+            // Mantener en rangos realistas
+            return Math.min(Math.max(combinedVolatility, 8), 65);
+        }
 
-        const allLabels = [];
-        const historicalPrices = [];
-        historicalData.forEach(p => { allLabels.push(formatDate(p.date)); historicalPrices.push(p.price); });
-        scenarios[0].slice(1).forEach(p => allLabels.push(formatDate(p.date)));
+        // DETECTAR TENDENCIA AUTOMÁTICAMENTE
+        function detectTrendFromData(historicalData, symbol) {
+            if (historicalData.length < 10) return 'neutral';
+            
+            const stockInfo = stockDatabase[symbol] || { trendBias: 0 };
+            
+            // Análisis de múltiples ventanas temporales
+            const shortTermData = historicalData.slice(-10);  // Últimos 10 días
+            const mediumTermData = historicalData.slice(-20); // Últimos 20 días
+            const longTermData = historicalData;              // Todo el período
+            
+            // Calcular retornos para cada ventana
+            const shortTermReturn = calculatePeriodReturn(shortTermData);
+            const mediumTermReturn = calculatePeriodReturn(mediumTermData);
+            const longTermReturn = calculatePeriodReturn(longTermData);
+            
+            // Peso mayor a datos más recientes
+            const trendScore = (shortTermReturn * 0.5 + mediumTermReturn * 0.3 + longTermReturn * 0.2);
+            
+            // Ajustar por características conocidas del stock
+            const adjustedScore = trendScore + stockInfo.trendBias * 5;
+            
+            // Clasificar tendencia
+            if (adjustedScore > 0.04) return 'bullish';   // >4% indica tendencia alcista
+            if (adjustedScore < -0.04) return 'bearish';  // <-4% indica tendencia bajista
+            return 'neutral';
+        }
 
-        const datasets = [{
-            label: 'Histórico',
-            data: historicalPrices.concat(new Array(scenarios[0].length - 1).fill(null)),
-            borderColor: '#2c3e50',
-            borderWidth: 3,
-            fill: false,
-            pointRadius: 0
-        }];
+        function calculatePeriodReturn(data) {
+            if (data.length < 2) return 0;
+            const firstPrice = data[0].price;
+            const lastPrice = data[data.length - 1].price;
+            return (lastPrice - firstPrice) / firstPrice;
+        }
 
-        const colors = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#34495e','#e67e22','#95a5a6','#f1c40f'];
-        scenarios.forEach((scenario, i) => {
-            const futureData = new Array(historicalData.length - 1).fill(null);
-            scenario.forEach(p => futureData.push(p.price));
-            datasets.push({
-                label: `Escenario ${i + 1}`,
-                data: futureData,
-                borderColor: colors[i % colors.length],
-                borderWidth: 2,
+        function calculateMomentumIndicator(data) {
+            if (data.length < 5) return 0;
+            
+            const recent = data.slice(-5);
+            let momentum = 0;
+            
+            for (let i = 1; i < recent.length; i++) {
+                momentum += (recent[i].price - recent[i-1].price) / recent[i-1].price;
+            }
+            
+            return (momentum / (recent.length - 1)) * 100; // Convertir a porcentaje
+        }
+
+        function calculateConfidenceLevel(volatility, dataPoints) {
+            // Factores que afectan la confianza de la predicción
+            const volatilityFactor = Math.max(20, 100 - volatility * 1.8); // Menor vol = mayor confianza
+            const dataQualityFactor = Math.min(dataPoints / 60 * 100, 100); // Más datos = mayor confianza
+            
+            return Math.round((volatilityFactor + dataQualityFactor) / 2);
+        }
+
+        // Simular escenarios futuros con parámetros calculados
+        function simulateFutureScenario(currentPrice, days, volatility, trend, scenarioIndex) {
+            const data = [];
+            let price = currentPrice;
+            
+            const trendMultipliers = {
+                'bullish': 0.0008,
+                'neutral': 0.0002,
+                'bearish': -0.0004
+            };
+            
+            const baseDrift = trendMultipliers[trend];
+            const dailyVolatility = volatility / 100 / Math.sqrt(252);
+            
+            // Modificadores únicos por escenario
+            const scenarioModifiers = [-0.1, 0, 0.1, -0.05, 0.05, -0.15, 0.15, 0.03, -0.03, 0.08];
+            const scenarioAdjustment = scenarioModifiers[scenarioIndex] || 0;
+            
+            const today = new Date();
+            data.push({
+                date: today.toISOString().split('T')[0],
+                price: price
+            });
+            
+            for (let i = 1; i <= days; i++) {
+                const date = new Date(today);
+                date.setDate(date.getDate() + i);
+                
+                // Componentes del modelo avanzado
+                const trendDecay = Math.exp(-i / (days * 0.7)); // La tendencia se debilita con el tiempo
+                const cyclicalEffect = Math.sin(i / 15) * 0.002; // Ciclos de mercado de 15 días
+                const randomShock = (Math.random() - 0.5) * 2;
+                const scenarioSpecificNoise = randomShock * (1 + scenarioAdjustment);
+                
+                const adjustedDrift = baseDrift * trendDecay;
+                const dailyReturn = adjustedDrift + cyclicalEffect + dailyVolatility * scenarioSpecificNoise;
+                
+                // Aplicar cambio con límites realistas
+                price = Math.max(price * (1 + dailyReturn), currentPrice * 0.15);
+                
+                data.push({
+                    date: date.toISOString().split('T')[0],
+                    price: price
+                });
+            }
+            
+            return data;
+        }
+
+        function showCalculatedParameters(symbol, volatility, trend, momentum) {
+            const riskLevel = volatility > 35 ? '🔴 Alto' : volatility > 20 ? '🟡 Medio' : '🟢 Bajo';
+            const momentumDirection = momentum > 1 ? '⬆️ Positivo' : momentum < -1 ? '⬇️ Negativo' : '➡️ Neutro';
+            
+            document.getElementById('calcVolatility').textContent = volatility.toFixed(1) + '%';
+            document.getElementById('calcTrend').textContent = getTrendLabel(trend);
+            document.getElementById('calcMomentum').textContent = momentumDirection;
+            document.getElementById('riskLevel').textContent = riskLevel;
+            document.getElementById('calculatedParams').style.display = 'block';
+        }
+
+        function updateChart(historicalData, scenarios, symbol) {
+            const ctx = document.getElementById('stockChart');
+            if (!ctx) {
+                console.error('Canvas no encontrado');
+                return;
+            }
+            
+            const context = ctx.getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+            
+            // Preparar etiquetas y datos históricos
+            const allLabels = [];
+            const historicalPrices = [];
+            
+            historicalData.forEach(point => {
+                allLabels.push(formatDate(point.date));
+                historicalPrices.push(Math.round(point.price * 100) / 100);
+            });
+            
+            // Agregar fechas futuras
+            scenarios[0].slice(1).forEach(point => {
+                allLabels.push(formatDate(point.date));
+            });
+            
+            // Dataset histórico
+            const datasets = [{
+                label: '📊 Datos Históricos',
+                data: historicalPrices.concat(new Array(scenarios[0].length - 1).fill(null)),
+                borderColor: '#2c3e50',
+                backgroundColor: 'rgba(44, 62, 80, 0.1)',
+                borderWidth: 3,
                 fill: false,
                 pointRadius: 0,
-                borderDash: [5, 5]
+                pointHoverRadius: 5,
+                tension: 0.1
+            }];
+            
+            // Colores y etiquetas para escenarios
+            const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#34495e', '#e67e22', '#95a5a6', '#f1c40f'];
+            const scenarioLabels = ['🎯 Escenario Base', '📈 Optimista', '📉 Conservador', '🎲 Alternativo 1', '🎲 Alternativo 2', '🔮 Extremo +', '🔮 Extremo -', '📊 Variante A', '📊 Variante B', '🎯 Adicional'];
+            
+            scenarios.forEach((scenario, index) => {
+                const futureData = new Array(historicalData.length - 1).fill(null);
+                scenario.forEach(point => {
+                    futureData.push(Math.round(point.price * 100) / 100);
+                });
+                
+                datasets.push({
+                    label: scenarioLabels[index] || `Escenario ${index + 1}`,
+                    data: futureData,
+                    borderColor: colors[index % colors.length],
+                    backgroundColor: colors[index % colors.length] + '15',
+                    borderWidth: 2.5,
+                    fill: false,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    borderDash: [6, 3],
+                    tension: 0.1
+                });
             });
-        });
+            
+            chart = new Chart(context, {
+                type: 'line',
+                data: {
+                    labels: allLabels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${symbol} - Predicción con IA (Parámetros Auto-Calculados)`,
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            color: '#2c3e50'
+                        },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: { size: 11 }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Línea de Tiempo',
+                                font: { weight: 'bold' }
+                            },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Precio USD ($)',
+                                font: { weight: 'bold' }
+                            },
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutCubic'
+                    }
+                }
+            });
+        }
 
-        chart = new Chart(ctx, {
-            type: 'line',
-            data: { labels: allLabels, datasets },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { position: 'top' } },
-                scales: { x: { title: { display: true, text: 'Fecha' } }, y: { title: { display: true, text: 'Precio ($)' } } }
+        function updateAllStats(currentPrice, avgFinalPrice, expectedReturn, volatility, trend, confidence) {
+            document.getElementById('currentPrice').textContent = `${currentPrice.toFixed(2)}`;
+            document.getElementById('avgFinalPrice').textContent = `${avgFinalPrice.toFixed(2)}`;
+            document.getElementById('expectedReturn').textContent = `${expectedReturn >= 0 ? '+' : ''}${expectedReturn.toFixed(2)}%`;
+            document.getElementById('volatilityDisplay').textContent = `${volatility.toFixed(1)}%`;
+            document.getElementById('trendDisplay').textContent = getTrendLabel(trend).replace(/📈|📉|➡️/, '').trim();
+            document.getElementById('confidence').textContent = `${confidence}%`;
+        }
+
+        function generateAutomaticAnalysis(symbol, volatility, trend, expectedReturn) {
+            const stockInfo = stockDatabase[symbol] || {};
+            let analysis = '';
+            
+            // Análisis de volatilidad calculada
+            if (volatility > 40) {
+                analysis += '<div class="analysis-item">🚨 <strong>Volatilidad Muy Alta Detectada:</strong> Esta acción presenta movimientos de precio extremos basados en su historial. Alto riesgo pero potencial de ganancias significativas.</div>';
+            } else if (volatility > 25) {
+                analysis += '<div class="analysis-item">⚡ <strong>Volatilidad Moderada-Alta:</strong> El análisis histórico muestra movimientos considerables. Gestión activa de riesgo recomendada.</div>';
+            } else if (volatility < 15) {
+                analysis += '<div class="analysis-item">🛡️ <strong>Baja Volatilidad Histórica:</strong> Acción relativamente estable según patrones pasados. Adecuada para carteras conservadoras.</div>';
             }
-        });
-    }
+            
+            // Análisis de tendencia detectada
+            if (trend === 'bullish') {
+                analysis += '<div class="analysis-item">📈 <strong>Tendencia Alcista Identificada:</strong> El algoritmo detecta momentum positivo sostenido en los datos históricos.</div>';
+            } else if (trend === 'bearish') {
+                analysis += '<div class="analysis-item">📉 <strong>Presión Bajista Detectada:</strong> Los indicadores sugieren debilidad reciente. Posible oportunidad de entrada en niveles bajos.</div>';
+            } else {
+                analysis += '<div class="analysis-item">➡️ <strong>Consolidación Lateral:</strong> Precio en rango. El algoritmo no detecta tendencia clara definida.</div>';
+            }
+            
+            // Análisis de retorno proyectado
+            if (Math.abs(expectedReturn) > 15) {
+                analysis += '<div class="analysis-item">🎯 <strong>Movimiento Significativo Proyectado:</strong> Los modelos predicen cambios importantes basados en volatilidad y tendencia calculadas.</div>';
+            } else if (Math.abs(expectedReturn) < 5) {
+                analysis += '<div class="analysis-item">📊 <strong>Movimiento Moderado Esperado:</strong> Predicción de cambios graduales consistentes con el perfil histórico.</div>';
+            }
+            
+            // Análisis sectorial automático
+            const sectorInsights = {
+                'tech': '🖥️ Tecnología: Sector con alta correlación a tasas de interés y ciclos de innovación.',
+                'auto': '🚗 Automotriz: Transición eléctrica creando volatilidad estructural.',
+                'chip': '🔬 Semiconductores: Sector súper-cíclico dependiente de demanda global.',
+                'social': '📱 Redes Sociales: Modelos maduros pero expuestos a regulación.',
+                'streaming': '🎬 Streaming: Competencia intensa limitando márgenes.',
+                'saas': '💻 SaaS: Modelos recurrentes con crecimiento predecible.',
+                'retail': '🛒 E-commerce: Crecimiento estructural con presión en márgenes.'
+            };
+            
+            if (sectorInsights[stockInfo.sector]) {
+                analysis += `<div class="analysis-item">${sectorInsights[stockInfo.sector]}</div>`;
+            }
+            
+            // Recomendaciones basadas en análisis automático
+            if (volatility > 35 && trend === 'bearish') {
+                analysis += '<div class="analysis-item">💡 <strong>Recomendación IA:</strong> Alta volatilidad + tendencia bajista = Esperar mejor punto de entrada.</div>';
+            } else if (volatility < 20 && trend === 'bullish') {
+                analysis += '<div class="analysis-item">💡 <strong>Recomendación IA:</strong> Baja volatilidad + tendencia alcista = Perfil riesgo-retorno favorable.</div>';
+            } else if (volatility > 40) {
+                analysis += '<div class="analysis-item">💡 <strong>Recomendación IA:</strong> Considerar posición reducida debido a alta volatilidad calculada.</div>';
+            }
+            
+            document.getElementById('analysisContent').innerHTML = analysis || '<div class="analysis-item">📊 Análisis completado con parámetros auto-calculados.</div>';
+            document.getElementById('analysisDiv').style.display = 'block';
+        }
 
-    function updateStats(currentPrice, avgFinalPrice, expectedReturn, risk) {
-        document.getElementById('currentPrice').textContent = `$${currentPrice.toFixed(2)}`;
-        document.getElementById('avgFinalPrice').textContent = `$${avgFinalPrice.toFixed(2)}`;
-        document.getElementById('expectedReturn').textContent = `${expectedReturn.toFixed(2)}%`;
-        document.getElementById('riskValue').textContent = `${risk.toFixed(2)}%`;
-    }
+        function getTrendLabel(trend) {
+            const labels = {
+                'bullish': '📈 Alcista',
+                'neutral': '➡️ Neutral', 
+                'bearish': '📉 Bajista'
+            };
+            return labels[trend] || '➡️ Neutral';
+        }
 
-    function showMessage(message, type) {
-        const messageDiv = document.getElementById('messageDiv');
-        messageDiv.className = 'message ' + type;
-        messageDiv.textContent = message;
-        messageDiv.style.display = 'block';
-        setTimeout(() => { messageDiv.style.display = 'none'; }, 4000);
-    }
+        function getTrendEmoji(trend) {
+            const emojis = { 'bullish': '📈', 'neutral': '➡️', 'bearish': '📉' };
+            return emojis[trend] || '➡️';
+        }
 
-    function showLoading(symbol) {
-        document.getElementById('loadingDiv').style.display = 'block';
-        document.getElementById('loadingStock').textContent = symbol;
-    }
-    function hideLoading() { document.getElementById('loadingDiv').style.display = 'none'; }
-    function updateStatus(status) { document.getElementById('statusDiv').textContent = status; }
-    function formatDate(dateStr) { return new Date(dateStr).toLocaleDateString('es-ES',{month:'short',day:'numeric'}); }
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('messageDiv');
+            messageDiv.className = 'message ' + type;
+            messageDiv.textContent = message;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeApp);
-    } else {
-        initializeApp();
-    }
-</script>
+        function showLoading(symbol) {
+            document.getElementById('loadingDiv').style.display = 'block';
+            document.getElementById('loadingStock').textContent = symbol;
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingDiv').style.display = 'none';
+        }
+
+        function updateStatus(status) {
+            document.getElementById('statusDiv').textContent = status;
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('es-ES', { 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        // Inicialización robusta
+        function setupApp() {
+            console.log('🔧 Configurando simulador...');
+            
+            if (typeof Chart === 'undefined') {
+                console.log('⏳ Esperando Chart.js...');
+                setTimeout(setupApp, 200);
+                return;
+            }
+            
+            console.log('✅ Chart.js disponible');
+            initializeStockDatabase();
+            
+            // Configurar event listeners con métodos múltiples
+            const btn = document.getElementById('simulateBtn');
+            if (btn) {
+                btn.onclick = executeSimulation;
+                btn.addEventListener('click', executeSimulation);
+            }
+            
+            const input = document.getElementById('stockSymbol');
+            if (input) {
+                input.onkeypress = function(e) {
+                    if (e.key === 'Enter') executeSimulation();
+                };
+            }
+            
+            console.log('🎯 Ejecutando simulación inicial...');
+            setTimeout(executeSimulation, 800);
+        }
+
+        // Inicialización principal
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupApp);
+        } else {
+            setupApp();
+        }
+
+        // Funciones globales para debug y testing
+        window.runSim = executeSimulation;
+        window.testFunc = function() {
+            console.log('✅ Test function working');
+            updateStatus('Test ejecutado - ' + new Date().toLocaleTimeString());
+            return true;
+        };
+        
+        console.log('🚀 Simulador Inteligente v3.0 - Con cálculos automáticos activado');
+    </script>
+</body>
+</html>
