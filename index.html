@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Criptomonedas</title>
+    <title>Simulador de Criptomonedas - Precios en Tiempo Real</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * {
@@ -70,6 +70,7 @@
         }
         .price-change.positive { color: #00d4aa; }
         .price-change.negative { color: #ff6b9d; }
+        .price-change.neutral { color: #ccc; }
         .controls {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -178,20 +179,50 @@
             color: #0f5132;
             border-left-color: #198754;
         }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left-color: #dc3545;
+        }
         .status {
             text-align: center;
             padding: 10px;
             font-weight: bold;
             color: #f39800;
         }
-        .debug {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
+        .last-updated {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .loading-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #f39800;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 5px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .api-status {
+            background: rgba(0, 212, 170, 0.1);
+            border: 1px solid #00d4aa;
             border-radius: 8px;
-            padding: 15px;
-            margin: 20px 0;
-            font-family: monospace;
-            font-size: 14px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 12px;
+            color: #00a085;
+        }
+        .api-status.error {
+            background: rgba(255, 107, 157, 0.1);
+            border-color: #ff6b9d;
+            color: #d63384;
         }
     </style>
 </head>
@@ -199,27 +230,33 @@
     <div class="container">
         <div class="header">
             <h1>Simulador de Criptomonedas</h1>
-            <p>Predicciones con datos realistas</p>
-            <div class="status" id="statusDiv">Sistema listo</div>
+            <p>Precios reales actualizados automáticamente</p>
+            <div class="status" id="statusDiv">Cargando precios reales...</div>
         </div>
 
         <div class="price-ticker">
             <div class="price-item">
                 <div class="price-symbol">BTC</div>
-                <div class="price-value" id="btcPrice">$104,870</div>
-                <div class="price-change negative">-4.02%</div>
+                <div class="price-value" id="btcPrice">Cargando...</div>
+                <div class="price-change neutral" id="btcChange">---</div>
             </div>
             <div class="price-item">
                 <div class="price-symbol">ETH</div>
-                <div class="price-value" id="ethPrice">$4,467</div>
-                <div class="price-change positive">+2.65%</div>
+                <div class="price-value" id="ethPrice">Cargando...</div>
+                <div class="price-change neutral" id="ethChange">---</div>
             </div>
             <div class="price-item">
                 <div class="price-symbol">USDT</div>
-                <div class="price-value">$1.0000</div>
-                <div class="price-change">0.00%</div>
+                <div class="price-value" id="usdtPrice">Cargando...</div>
+                <div class="price-change neutral" id="usdtChange">---</div>
             </div>
         </div>
+        
+        <div class="api-status" id="apiStatus">
+            <span class="loading-indicator"></span>Conectando con API de precios...
+        </div>
+        
+        <div class="last-updated" id="lastUpdated">Esperando datos...</div>
         
         <div class="controls">
             <div class="control-group">
@@ -254,10 +291,6 @@
             </div>
         </div>
         
-        <div class="debug" id="debugInfo">
-            Debug: Botón configurado, esperando clic...
-        </div>
-        
         <div id="messageDiv" class="message"></div>
         
         <div class="chart-container">
@@ -267,7 +300,7 @@
         <div class="stats">
             <div class="stat-card price">
                 <h3>Precio Actual</h3>
-                <div class="value" id="currentPrice">$4,467</div>
+                <div class="value" id="currentPrice">Cargando...</div>
             </div>
             <div class="stat-card target">
                 <h3>Precio Objetivo</h3>
@@ -295,45 +328,181 @@
     <script>
         // Variables globales
         let chart = null;
-        const cryptoData = {
-            BTC: { name: 'Bitcoin', price: 104870, vol: 45 }, // Precio de Google
-            ETH: { name: 'Ethereum', price: 4467, vol: 52 },
-            USDT: { name: 'Tether', price: 1.00, vol: 0.8 }
+        let priceUpdateInterval;
+        let realPrices = {
+            BTC: { price: 104870, change: 0 },
+            ETH: { price: 4467, change: 0 },
+            USDT: { price: 1.0000, change: 0 }
         };
         
-        function log(message) {
-            console.log(message);
-            document.getElementById('debugInfo').textContent = message;
-        }
+        const cryptoData = {
+            BTC: { name: 'Bitcoin', vol: 45, id: 'bitcoin' },
+            ETH: { name: 'Ethereum', vol: 52, id: 'ethereum' },
+            USDT: { name: 'Tether', vol: 0.8, id: 'tether' }
+        };
         
         function updateStatus(message) {
             document.getElementById('statusDiv').textContent = message;
         }
         
-        function showMessage(message) {
-            const msgDiv = document.getElementById('messageDiv');
-            msgDiv.textContent = message;
-            msgDiv.className = 'message success';
-            msgDiv.style.display = 'block';
-            setTimeout(() => msgDiv.style.display = 'none', 3000);
+        function updateApiStatus(message, isError = false) {
+            const statusEl = document.getElementById('apiStatus');
+            if (isError) {
+                statusEl.className = 'api-status error';
+                statusEl.innerHTML = `⚠️ ${message}`;
+            } else {
+                statusEl.className = 'api-status';
+                statusEl.innerHTML = `✅ ${message}`;
+            }
         }
         
-        // Función principal - DIRECTA sin setTimeout
-        function runAnalysis() {
-            log('¡Botón clickeado! Iniciando análisis...');
-            updateStatus('Ejecutando análisis...');
+        function showMessage(message, type = 'success') {
+            const msgDiv = document.getElementById('messageDiv');
+            msgDiv.textContent = message;
+            msgDiv.className = `message ${type}`;
+            msgDiv.style.display = 'block';
+            setTimeout(() => msgDiv.style.display = 'none', 5000);
+        }
+        
+        // Función para obtener precios reales
+        async function fetchRealPrices() {
+            try {
+                console.log('Obteniendo precios reales...');
+                updateApiStatus('Actualizando precios...', false);
+                
+                // Intento 1: CoinGecko API (gratis, no requiere API key)
+                let response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether&vs_currencies=usd&include_24hr_change=true', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Datos recibidos:', data);
+                
+                // Actualizar precios
+                if (data.bitcoin) {
+                    realPrices.BTC.price = data.bitcoin.usd;
+                    realPrices.BTC.change = data.bitcoin.usd_24h_change || 0;
+                    updatePriceDisplay('btc', data.bitcoin.usd, data.bitcoin.usd_24h_change);
+                }
+                
+                if (data.ethereum) {
+                    realPrices.ETH.price = data.ethereum.usd;
+                    realPrices.ETH.change = data.ethereum.usd_24h_change || 0;
+                    updatePriceDisplay('eth', data.ethereum.usd, data.ethereum.usd_24h_change);
+                }
+                
+                if (data.tether) {
+                    realPrices.USDT.price = data.tether.usd;
+                    realPrices.USDT.change = data.tether.usd_24h_change || 0;
+                    updatePriceDisplay('usdt', data.tether.usd, data.tether.usd_24h_change);
+                }
+                
+                // Actualizar timestamp
+                const now = new Date();
+                document.getElementById('lastUpdated').textContent = `Actualizado: ${now.toLocaleTimeString()}`;
+                
+                updateStatus('Precios actualizados correctamente');
+                updateApiStatus(`Última actualización: ${now.toLocaleTimeString()}`);
+                
+                console.log('Precios actualizados:', realPrices);
+                return true;
+                
+            } catch (error) {
+                console.error('Error primario:', error);
+                
+                // Fallback: Usar API alternativa o precios por defecto
+                try {
+                    // Intento 2: API alternativa simple
+                    const fallbackResponse = await fetch('https://api.coinbase.com/v2/exchange-rates?currency=BTC');
+                    if (fallbackResponse.ok) {
+                        const fallbackData = await fallbackResponse.json();
+                        if (fallbackData.data && fallbackData.data.rates) {
+                            const btcPrice = parseFloat(fallbackData.data.rates.USD);
+                            if (btcPrice > 0) {
+                                realPrices.BTC.price = btcPrice;
+                                updatePriceDisplay('btc', btcPrice, 0);
+                                updateApiStatus('Usando API alternativa (Coinbase)');
+                                return true;
+                            }
+                        }
+                    }
+                } catch (fallbackError) {
+                    console.error('Error en fallback:', fallbackError);
+                }
+                
+                // Último fallback: Precios simulados basados en últimos conocidos
+                updateApiStatus(`Sin conexión API - Simulando precios basados en datos recientes`, true);
+                simulatePriceUpdates();
+                return false;
+            }
+        }
+        
+        // Simular actualizaciones cuando no hay API
+        function simulatePriceUpdates() {
+            const btcBase = 104870;
+            const ethBase = 4467;
+            const usdtBase = 1.0000;
             
+            // Variaciones pequeñas y realistas
+            const btcVariation = (Math.random() - 0.5) * 0.02; // ±1%
+            const ethVariation = (Math.random() - 0.5) * 0.03; // ±1.5%
+            const usdtVariation = (Math.random() - 0.5) * 0.001; // ±0.05%
+            
+            const newBtcPrice = btcBase * (1 + btcVariation);
+            const newEthPrice = ethBase * (1 + ethVariation);
+            const newUsdtPrice = usdtBase * (1 + usdtVariation);
+            
+            realPrices.BTC.price = newBtcPrice;
+            realPrices.ETH.price = newEthPrice;
+            realPrices.USDT.price = newUsdtPrice;
+            
+            updatePriceDisplay('btc', newBtcPrice, btcVariation * 100);
+            updatePriceDisplay('eth', newEthPrice, ethVariation * 100);
+            updatePriceDisplay('usdt', newUsdtPrice, usdtVariation * 100);
+            
+            const now = new Date();
+            document.getElementById('lastUpdated').textContent = `Simulado: ${now.toLocaleTimeString()}`;
+        }
+        
+        function updatePriceDisplay(crypto, price, change) {
+            const priceElement = document.getElementById(crypto + 'Price');
+            const changeElement = document.getElementById(crypto + 'Change');
+            
+            if (priceElement) {
+                if (crypto === 'usdt') {
+                    priceElement.textContent = '$' + price.toFixed(4);
+                } else {
+                    priceElement.textContent = '$' + Math.round(price).toLocaleString();
+                }
+            }
+            
+            if (changeElement && change !== undefined) {
+                const changeText = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+                changeElement.textContent = changeText;
+                changeElement.className = 'price-change ' + (change > 0 ? 'positive' : change < 0 ? 'negative' : 'neutral');
+            }
+        }
+        
+        // Función principal de análisis
+        function runAnalysis() {
             try {
                 const symbol = document.getElementById('cryptoSymbol').value;
                 const days = parseInt(document.getElementById('timeHorizon').value);
                 const numScenarios = parseInt(document.getElementById('scenarios').value);
                 
-                log(`Analizando ${symbol} por ${days} días con ${numScenarios} escenarios`);
+                updateStatus(`Analizando ${cryptoData[symbol].name}...`);
                 
+                const currentPrice = realPrices[symbol].price;
                 const crypto = cryptoData[symbol];
-                const currentPrice = crypto.price;
                 
-                // Generar datos históricos simples
+                // Generar datos históricos
                 const historical = generateHistoricalData(currentPrice, 60);
                 
                 // Calcular parámetros
@@ -351,19 +520,16 @@
                 const avgPrice = finalPrices.reduce((a, b) => a + b) / finalPrices.length;
                 const expectedReturn = ((avgPrice - currentPrice) / currentPrice) * 100;
                 
-                // Actualizar gráfico
+                // Actualizar gráfico y estadísticas
                 updateChart(historical, scenarios, symbol);
-                
-                // Actualizar estadísticas
                 updateStats(currentPrice, avgPrice, expectedReturn, volatility, trend);
                 
-                showMessage(`Análisis completado para ${crypto.name}`);
-                updateStatus(`${crypto.name} analizado correctamente`);
-                log('Análisis completado exitosamente');
+                showMessage(`Análisis completado para ${crypto.name} con precio real actual`);
+                updateStatus(`${crypto.name} analizado - Precio: $${Math.round(currentPrice).toLocaleString()}`);
                 
             } catch (error) {
-                log('ERROR: ' + error.message);
-                updateStatus('Error en análisis');
+                console.error('Error en análisis:', error);
+                showMessage('Error en análisis: ' + error.message, 'error');
             }
         }
         
@@ -376,7 +542,7 @@
                 const date = new Date(today);
                 date.setDate(date.getDate() - i);
                 
-                const change = (Math.random() - 0.5) * 0.06; // ±3% cambio diario
+                const change = (Math.random() - 0.5) * 0.06;
                 price *= (1 + change);
                 
                 data.push({
@@ -422,7 +588,7 @@
                           ...scenarios[0].slice(1).map(s => formatDate(s.date))];
             
             const datasets = [{
-                label: 'Histórico',
+                label: 'Precio Histórico',
                 data: [...historical.map(h => h.price), ...new Array(scenarios[0].length - 1).fill(null)],
                 borderColor: '#2c3e50',
                 borderWidth: 3,
@@ -452,7 +618,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: `${cryptoData[symbol].name} - Predicción`,
+                            text: `${cryptoData[symbol].name} - Predicción con Precios Reales`,
                             font: { size: 16 }
                         }
                     },
@@ -488,33 +654,39 @@
         }
         
         // Inicialización
-        function init() {
-            log('Inicializando simulador...');
+        async function init() {
+            console.log('Inicializando simulador con precios reales...');
             
             if (typeof Chart === 'undefined') {
-                log('Esperando Chart.js...');
                 setTimeout(init, 100);
                 return;
             }
             
-            log('Chart.js cargado. Sistema listo.');
-            updateStatus('Sistema iniciado - Haz clic en Analizar');
+            // Obtener precios iniciales
+            await fetchRealPrices();
+            
+            // Configurar actualización automática cada 2 minutos
+            priceUpdateInterval = setInterval(fetchRealPrices, 120000);
             
             // Ejecutar análisis inicial
-            setTimeout(runAnalysis, 1000);
+            setTimeout(runAnalysis, 1500);
         }
         
-        // Inicializar cuando el DOM esté listo
+        // Limpiar interval al cerrar página
+        window.addEventListener('beforeunload', () => {
+            if (priceUpdateInterval) {
+                clearInterval(priceUpdateInterval);
+            }
+        });
+        
+        // Inicializar cuando esté listo
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {
             init();
         }
         
-        // Testing
-        window.test = runAnalysis;
-        
-        console.log('Script cargado completamente');
+        console.log('Simulador con precios reales cargado');
     </script>
 </body>
 </html>
