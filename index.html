@@ -70,7 +70,6 @@
         }
         .price-change.positive { color: #00d4aa; }
         .price-change.negative { color: #ff6b9d; }
-        .price-change.neutral { color: #ccc; }
         .controls {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -118,9 +117,6 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(243, 152, 0, 0.4);
         }
-        .btn:active {
-            transform: translateY(0);
-        }
         .chart-container {
             position: relative;
             height: 500px;
@@ -129,37 +125,6 @@
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-        .calculated-params {
-            background: linear-gradient(135deg, #fff9e6 0%, #ffeaa7 100%);
-            border: 1px solid #f39c12;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .param-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 10px;
-        }
-        .param-item {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 12px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .param-label {
-            font-weight: 600;
-            color: #856404;
-            font-size: 13px;
-        }
-        .param-value {
-            color: #533f03;
-            font-weight: bold;
-            font-size: 14px;
         }
         .stats {
             display: grid;
@@ -201,34 +166,12 @@
             font-size: 20px;
             font-weight: bold;
         }
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #6c757d;
-        }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #f39800;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
         .message {
             padding: 15px;
             border-radius: 8px;
             margin: 20px 0;
             border-left: 4px solid;
-        }
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            border-left-color: #dc3545;
+            display: none;
         }
         .success {
             background: #d1e7dd;
@@ -241,156 +184,110 @@
             font-weight: bold;
             color: #f39800;
         }
-        .analysis {
-            background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
-            border-radius: 12px;
-            padding: 20px;
+        .debug {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
             margin: 20px 0;
-            border-left: 4px solid #3498db;
-        }
-        .analysis h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-        .analysis-item {
-            margin: 10px 0;
-            color: #34495e;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(52, 73, 94, 0.1);
-        }
-        .last-updated {
-            font-size: 12px;
-            color: #666;
-            text-align: center;
-            margin-top: 10px;
+            font-family: monospace;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 Simulador de Criptomonedas</h1>
-            <p>Predicciones avanzadas con simulación de precios realistas</p>
-            <div class="status" id="statusDiv">Listo para analizar</div>
+            <h1>Simulador de Criptomonedas</h1>
+            <p>Predicciones con datos realistas</p>
+            <div class="status" id="statusDiv">Sistema listo</div>
         </div>
 
-        <div class="price-ticker" id="priceTicker">
+        <div class="price-ticker">
             <div class="price-item">
-                <div class="price-symbol">₿ BTC</div>
+                <div class="price-symbol">BTC</div>
                 <div class="price-value" id="btcPrice">$109,236</div>
-                <div class="price-change positive" id="btcChange">+1.22%</div>
+                <div class="price-change positive">+1.22%</div>
             </div>
             <div class="price-item">
-                <div class="price-symbol">⟐ ETH</div>
+                <div class="price-symbol">ETH</div>
                 <div class="price-value" id="ethPrice">$4,467</div>
-                <div class="price-change positive" id="ethChange">+2.65%</div>
+                <div class="price-change positive">+2.65%</div>
             </div>
             <div class="price-item">
-                <div class="price-symbol">₮ USDT</div>
-                <div class="price-value" id="usdtPrice">$1.0000</div>
-                <div class="price-change neutral" id="usdtChange">0.00%</div>
+                <div class="price-symbol">USDT</div>
+                <div class="price-value">$1.0000</div>
+                <div class="price-change">0.00%</div>
             </div>
         </div>
-        <div class="last-updated" id="lastUpdated">Precios de referencia - 31 Ago 2025</div>
         
         <div class="controls">
             <div class="control-group">
-                <label for="cryptoSymbol">🪙 Criptomoneda:</label>
+                <label for="cryptoSymbol">Criptomoneda:</label>
                 <select id="cryptoSymbol">
-                    <option value="BTC">₿ Bitcoin (BTC)</option>
-                    <option value="ETH" selected>⟐ Ethereum (ETH)</option>
-                    <option value="USDT">₮ Tether (USDT)</option>
+                    <option value="BTC">Bitcoin (BTC)</option>
+                    <option value="ETH" selected>Ethereum (ETH)</option>
+                    <option value="USDT">Tether (USDT)</option>
                 </select>
             </div>
             
             <div class="control-group">
-                <label for="timeHorizon">⏰ Período de Predicción:</label>
+                <label for="timeHorizon">Período:</label>
                 <select id="timeHorizon">
                     <option value="30">30 días</option>
                     <option value="60">60 días</option>
                     <option value="90" selected>90 días</option>
                     <option value="180">6 meses</option>
-                    <option value="365">1 año</option>
                 </select>
             </div>
             
             <div class="control-group">
-                <label for="scenarios">🎯 Número de Escenarios:</label>
+                <label for="scenarios">Escenarios:</label>
                 <select id="scenarios">
                     <option value="3" selected>3 escenarios</option>
                     <option value="5">5 escenarios</option>
-                    <option value="10">10 escenarios</option>
                 </select>
             </div>
             
             <div class="control-group">
-                <button class="btn" id="simulateBtn">🚀 Analizar y Predecir</button>
+                <button class="btn" onclick="runAnalysis()">Analizar y Predecir</button>
             </div>
         </div>
         
-        <div class="calculated-params" id="calculatedParams" style="display: none;">
-            <h4 style="color: #856404; margin-bottom: 15px;">🔍 Parámetros Calculados Automáticamente</h4>
-            <div class="param-grid">
-                <div class="param-item">
-                    <span class="param-label">📊 Volatilidad Calculada</span>
-                    <span class="param-value" id="calcVolatility">-</span>
-                </div>
-                <div class="param-item">
-                    <span class="param-label">📈 Tendencia Detectada</span>
-                    <span class="param-value" id="calcTrend">-</span>
-                </div>
-                <div class="param-item">
-                    <span class="param-label">💹 Momentum</span>
-                    <span class="param-value" id="calcMomentum">-</span>
-                </div>
-                <div class="param-item">
-                    <span class="param-label">⚠️ Nivel de Riesgo</span>
-                    <span class="param-value" id="riskLevel">-</span>
-                </div>
-            </div>
+        <div class="debug" id="debugInfo">
+            Debug: Botón configurado, esperando clic...
         </div>
         
-        <div id="loadingDiv" class="loading" style="display: none;">
-            <div class="spinner"></div>
-            <p>Analizando comportamiento histórico de <span id="loadingCrypto"></span>...</p>
-        </div>
-        
-        <div id="messageDiv" style="display: none;"></div>
+        <div id="messageDiv" class="message"></div>
         
         <div class="chart-container">
             <canvas id="cryptoChart"></canvas>
         </div>
         
-        <div class="analysis" id="analysisDiv" style="display: none;">
-            <h3>🎯 Análisis Automático Inteligente</h3>
-            <div id="analysisContent"></div>
-        </div>
-        
-        <div class="stats" id="statsContainer">
+        <div class="stats">
             <div class="stat-card price">
                 <h3>Precio Actual</h3>
                 <div class="value" id="currentPrice">$4,467</div>
             </div>
             <div class="stat-card target">
                 <h3>Precio Objetivo</h3>
-                <div class="value" id="avgFinalPrice">$4,650</div>
+                <div class="value" id="avgFinalPrice">---</div>
             </div>
             <div class="stat-card volatility">
-                <h3>Volatilidad Auto</h3>
-                <div class="value" id="volatilityDisplay">28.5%</div>
+                <h3>Volatilidad</h3>
+                <div class="value" id="volatilityDisplay">---</div>
             </div>
             <div class="stat-card trend">
-                <h3>Tendencia Auto</h3>
-                <div class="value" id="trendDisplay">Alcista</div>
+                <h3>Tendencia</h3>
+                <div class="value" id="trendDisplay">---</div>
             </div>
             <div class="stat-card return">
-                <h3>Retorno Esperado</h3>
-                <div class="value" id="expectedReturn">+4.1%</div>
+                <h3>Retorno</h3>
+                <div class="value" id="expectedReturn">---</div>
             </div>
             <div class="stat-card risk">
-                <h3>Confianza IA</h3>
-                <div class="value" id="confidence">82%</div>
+                <h3>Confianza</h3>
+                <div class="value" id="confidence">---</div>
             </div>
         </div>
     </div>
@@ -398,164 +295,89 @@
     <script>
         // Variables globales
         let chart = null;
-        let isSimulating = false;
-        let cryptoDatabase = {};
+        const cryptoData = {
+            BTC: { name: 'Bitcoin', price: 109236, vol: 45 },
+            ETH: { name: 'Ethereum', price: 4467, vol: 52 },
+            USDT: { name: 'Tether', price: 1.00, vol: 0.8 }
+        };
         
-        // Base de datos con precios basados en datos reales recientes
-        function initializeCryptoDatabase() {
-            cryptoDatabase = {
-                'BTC': {
-                    name: 'Bitcoin',
-                    symbol: '₿',
-                    basePrice: 109236,
-                    historicalVol: 45,
-                    trendBias: 0.0008,
-                    beta: 1.0,
-                    description: 'Primera criptomoneda y reserva de valor digital'
-                },
-                'ETH': {
-                    name: 'Ethereum',
-                    symbol: '⟐', 
-                    basePrice: 4467,
-                    historicalVol: 52,
-                    trendBias: 0.0012,
-                    beta: 1.3,
-                    description: 'Plataforma de contratos inteligentes líder'
-                },
-                'USDT': {
-                    name: 'Tether',
-                    symbol: '₮',
-                    basePrice: 1.00,
-                    historicalVol: 0.8,
-                    trendBias: 0.0001,
-                    beta: 0.1,
-                    description: 'Stablecoin respaldada en USD'
+        function log(message) {
+            console.log(message);
+            document.getElementById('debugInfo').textContent = message;
+        }
+        
+        function updateStatus(message) {
+            document.getElementById('statusDiv').textContent = message;
+        }
+        
+        function showMessage(message) {
+            const msgDiv = document.getElementById('messageDiv');
+            msgDiv.textContent = message;
+            msgDiv.className = 'message success';
+            msgDiv.style.display = 'block';
+            setTimeout(() => msgDiv.style.display = 'none', 3000);
+        }
+        
+        // Función principal - DIRECTA sin setTimeout
+        function runAnalysis() {
+            log('¡Botón clickeado! Iniciando análisis...');
+            updateStatus('Ejecutando análisis...');
+            
+            try {
+                const symbol = document.getElementById('cryptoSymbol').value;
+                const days = parseInt(document.getElementById('timeHorizon').value);
+                const numScenarios = parseInt(document.getElementById('scenarios').value);
+                
+                log(`Analizando ${symbol} por ${days} días con ${numScenarios} escenarios`);
+                
+                const crypto = cryptoData[symbol];
+                const currentPrice = crypto.price;
+                
+                // Generar datos históricos simples
+                const historical = generateHistoricalData(currentPrice, 60);
+                
+                // Calcular parámetros
+                const volatility = crypto.vol + (Math.random() - 0.5) * 10;
+                const trend = Math.random() > 0.5 ? 'bullish' : 'bearish';
+                
+                // Simular escenarios futuros
+                const scenarios = [];
+                for (let i = 0; i < numScenarios; i++) {
+                    scenarios.push(simulateScenario(currentPrice, days, volatility));
                 }
-            };
-        }
-        
-        // Simular variaciones de precios realistas
-        function simulatePriceVariation() {
-            const variations = {
-                BTC: (Math.random() - 0.5) * 2000 + 109236, // ±1000
-                ETH: (Math.random() - 0.5) * 200 + 4467,    // ±100
-                USDT: 1.0 + (Math.random() - 0.5) * 0.004   // ±0.002
-            };
-            
-            // Actualizar display
-            document.getElementById('btcPrice').textContent = '$' + Math.round(variations.BTC).toLocaleString();
-            document.getElementById('ethPrice').textContent = '$' + Math.round(variations.ETH).toLocaleString();
-            document.getElementById('usdtPrice').textContent = '$' + variations.USDT.toFixed(4);
-            
-            // Actualizar base de datos
-            cryptoDatabase.BTC.basePrice = variations.BTC;
-            cryptoDatabase.ETH.basePrice = variations.ETH;
-            cryptoDatabase.USDT.basePrice = variations.USDT;
-            
-            // Actualizar timestamp
-            const now = new Date();
-            document.getElementById('lastUpdated').textContent = `Actualizado: ${now.toLocaleTimeString()}`;
-        }
-        
-        // Función principal de simulación
-        function executeSimulation() {
-            if (isSimulating) {
-                console.log('Simulación en curso...');
-                return;
+                
+                // Calcular estadísticas
+                const finalPrices = scenarios.map(s => s[s.length - 1].price);
+                const avgPrice = finalPrices.reduce((a, b) => a + b) / finalPrices.length;
+                const expectedReturn = ((avgPrice - currentPrice) / currentPrice) * 100;
+                
+                // Actualizar gráfico
+                updateChart(historical, scenarios, symbol);
+                
+                // Actualizar estadísticas
+                updateStats(currentPrice, avgPrice, expectedReturn, volatility, trend);
+                
+                showMessage(`Análisis completado para ${crypto.name}`);
+                updateStatus(`${crypto.name} analizado correctamente`);
+                log('Análisis completado exitosamente');
+                
+            } catch (error) {
+                log('ERROR: ' + error.message);
+                updateStatus('Error en análisis');
             }
-            
-            isSimulating = true;
-            console.log('🚀 Iniciando análisis...');
-            
-            const symbol = document.getElementById('cryptoSymbol').value || 'ETH';
-            const days = parseInt(document.getElementById('timeHorizon').value) || 90;
-            const numScenarios = parseInt(document.getElementById('scenarios').value) || 3;
-            
-            const cryptoInfo = cryptoDatabase[symbol];
-            updateStatus(`Analizando ${cryptoInfo.name} (${symbol})...`);
-            showLoading(symbol);
-            
-            setTimeout(() => {
-                try {
-                    console.log(`Analizando ${symbol} para ${days} días con ${numScenarios} escenarios`);
-                    
-                    // 1. Generar datos históricos
-                    const historicalData = generateCryptoData(symbol, 60);
-                    const currentPrice = historicalData[historicalData.length - 1].price;
-                    
-                    // 2. Calcular parámetros
-                    const calculatedVolatility = calculateVolatility(historicalData, symbol);
-                    const detectedTrend = detectTrend(historicalData, symbol);
-                    const momentum = calculateMomentum(historicalData);
-                    
-                    console.log(`Parámetros: Vol=${calculatedVolatility.toFixed(1)}%, Trend=${detectedTrend}`);
-                    
-                    // 3. Mostrar parámetros
-                    showCalculatedParameters(symbol, calculatedVolatility, detectedTrend, momentum);
-                    
-                    updateStatus('Generando escenarios...');
-                    
-                    // 4. Simular escenarios
-                    const scenarios = [];
-                    const allFinalPrices = [];
-                    
-                    for (let i = 0; i < numScenarios; i++) {
-                        const scenario = simulateScenario(currentPrice, days, calculatedVolatility, detectedTrend, i, symbol);
-                        scenarios.push(scenario);
-                        allFinalPrices.push(scenario[scenario.length - 1].price);
-                    }
-                    
-                    // 5. Calcular estadísticas
-                    const avgFinalPrice = allFinalPrices.reduce((a, b) => a + b, 0) / allFinalPrices.length;
-                    const expectedReturn = ((avgFinalPrice - currentPrice) / currentPrice) * 100;
-                    const confidence = calculateConfidence(calculatedVolatility, historicalData.length);
-                    
-                    // 6. Actualizar interfaz
-                    updateChart(historicalData, scenarios, symbol);
-                    updateStats(currentPrice, avgFinalPrice, expectedReturn, calculatedVolatility, detectedTrend, confidence);
-                    generateAnalysis(symbol, calculatedVolatility, detectedTrend, expectedReturn);
-                    
-                    hideLoading();
-                    showMessage(`✅ Análisis completado: ${cryptoInfo.name}`, 'success');
-                    updateStatus(`${cryptoInfo.name} analizado - ${new Date().toLocaleTimeString()}`);
-                    
-                } catch (error) {
-                    console.error('Error:', error);
-                    hideLoading();
-                    showMessage('❌ Error en análisis: ' + error.message, 'error');
-                    updateStatus('Error en análisis');
-                } finally {
-                    isSimulating = false;
-                }
-            }, 1200);
         }
         
-        // Generar datos históricos
-        function generateCryptoData(symbol, days = 60) {
-            const cryptoInfo = cryptoDatabase[symbol];
+        function generateHistoricalData(basePrice, days) {
             const data = [];
-            let price = cryptoInfo.basePrice;
-            
+            let price = basePrice;
             const today = new Date();
             
             for (let i = days; i >= 0; i--) {
                 const date = new Date(today);
                 date.setDate(date.getDate() - i);
                 
-                const baseVol = cryptoInfo.historicalVol / 100 / Math.sqrt(365);
-                const trend = cryptoInfo.trendBias;
-                const cycle = Math.sin(i / 12) * 0.006;
-                const random = (Math.random() - 0.5) * baseVol * 2.0;
-                
-                let eventFactor = 0;
-                if (symbol === 'USDT') {
-                    eventFactor = (Math.random() - 0.5) * 0.0005;
-                } else {
-                    eventFactor = (Math.random() - 0.5) * 0.002;
-                }
-                
-                const totalChange = trend + cycle + eventFactor + random;
-                price = Math.max(price * (1 + totalChange), cryptoInfo.basePrice * 0.4);
+                const change = (Math.random() - 0.5) * 0.06; // ±3% cambio diario
+                price *= (1 + change);
                 
                 data.push({
                     date: date.toISOString().split('T')[0],
@@ -566,131 +388,20 @@
             return data;
         }
         
-        function calculateVolatility(data, symbol) {
-            if (data.length < 10) return 20;
-            
-            const cryptoInfo = cryptoDatabase[symbol];
-            
-            if (symbol === 'USDT') {
-                return Math.random() * 1.2 + 0.4;
-            }
-            
-            const returns = [];
-            for (let i = 1; i < data.length; i++) {
-                const ret = Math.log(data[i].price / data[i-1].price);
-                returns.push(ret);
-            }
-            
-            const mean = returns.reduce((sum, ret) => sum + ret, 0) / returns.length;
-            const variance = returns.reduce((sum, ret) => sum + Math.pow(ret - mean, 2), 0) / (returns.length - 1);
-            const dailyVol = Math.sqrt(variance);
-            const annualVol = dailyVol * Math.sqrt(365) * 100;
-            
-            const combined = (annualVol * 0.7 + cryptoInfo.historicalVol * 0.3);
-            
-            if (symbol === 'BTC') return Math.min(Math.max(combined, 30), 80);
-            if (symbol === 'ETH') return Math.min(Math.max(combined, 35), 90);
-            
-            return Math.min(Math.max(combined, 15), 100);
-        }
-        
-        function detectTrend(data, symbol) {
-            if (data.length < 10) return 'neutral';
-            if (symbol === 'USDT') return 'neutral';
-            
-            const cryptoInfo = cryptoDatabase[symbol];
-            const shortTerm = data.slice(-7);
-            const mediumTerm = data.slice(-21);
-            
-            const shortReturn = calculateReturn(shortTerm);
-            const mediumReturn = calculateReturn(mediumTerm);
-            
-            const trendScore = (shortReturn * 0.7 + mediumReturn * 0.3);
-            const adjusted = trendScore + cryptoInfo.trendBias * 5;
-            
-            if (adjusted > 0.06) return 'bullish';
-            if (adjusted < -0.06) return 'bearish';
-            return 'neutral';
-        }
-        
-        function calculateReturn(data) {
-            if (data.length < 2) return 0;
-            return (data[data.length - 1].price - data[0].price) / data[0].price;
-        }
-        
-        function calculateMomentum(data) {
-            if (data.length < 5) return 0;
-            
-            const recent = data.slice(-5);
-            let momentum = 0;
-            
-            for (let i = 1; i < recent.length; i++) {
-                momentum += (recent[i].price - recent[i-1].price) / recent[i-1].price;
-            }
-            
-            return (momentum / (recent.length - 1)) * 100;
-        }
-        
-        function calculateConfidence(volatility, dataPoints) {
-            const volFactor = Math.max(15, 95 - volatility * 1.5);
-            const dataFactor = Math.min(dataPoints / 60 * 100, 100);
-            return Math.round((volFactor + dataFactor) / 2);
-        }
-        
-        function simulateScenario(currentPrice, days, volatility, trend, scenarioIndex, symbol) {
+        function simulateScenario(startPrice, days, volatility) {
             const data = [];
-            let price = currentPrice;
-            
-            if (symbol === 'USDT') {
-                const today = new Date();
-                for (let i = 0; i <= days; i++) {
-                    const date = new Date(today);
-                    date.setDate(date.getDate() + i);
-                    
-                    const fluctuation = (Math.random() - 0.5) * 0.002;
-                    price = Math.max(0.98, Math.min(1.02, price * (1 + fluctuation)));
-                    
-                    data.push({
-                        date: date.toISOString().split('T')[0],
-                        price: price
-                    });
-                }
-                return data;
-            }
-            
-            const trendMult = {
-                'bullish': symbol === 'BTC' ? 0.0015 : 0.0018,
-                'neutral': 0.0003,
-                'bearish': symbol === 'BTC' ? -0.0012 : -0.0015
-            };
-            
-            const baseDrift = trendMult[trend];
-            const dailyVol = volatility / 100 / Math.sqrt(365);
-            
-            const scenarioMods = [-0.15, 0, 0.15, -0.08, 0.08, -0.25, 0.25, 0.05, -0.05, 0.12];
-            const scenarioAdj = scenarioMods[scenarioIndex] || 0;
-            
+            let price = startPrice;
             const today = new Date();
-            data.push({
-                date: today.toISOString().split('T')[0],
-                price: price
-            });
+            
+            data.push({ date: today.toISOString().split('T')[0], price: price });
             
             for (let i = 1; i <= days; i++) {
                 const date = new Date(today);
                 date.setDate(date.getDate() + i);
                 
-                const trendDecay = Math.exp(-i / (days * 0.6));
-                const cycle = Math.sin(i / 10) * 0.004;
-                const weekendEffect = (date.getDay() === 0 || date.getDay() === 6) ? 0.85 : 1.0;
-                const volCluster = Math.random() > 0.9 ? 2.5 : 1.0;
-                const randomShock = (Math.random() - 0.5) * 2;
-                const noise = randomShock * (1 + scenarioAdj) * volCluster;
-                
-                const adjustedDrift = baseDrift * trendDecay * weekendEffect;
-                const dailyReturn = adjustedDrift + cycle + dailyVol * noise;
-                
-                price = Math.max(price * (1 + dailyReturn), currentPrice * 0.05);
+                const dailyVol = volatility / 100 / Math.sqrt(365);
+                const change = (Math.random() - 0.5) * dailyVol * 4;
+                price *= (1 + change);
                 
                 data.push({
                     date: date.toISOString().split('T')[0],
@@ -701,4 +412,109 @@
             return data;
         }
         
-        function showCalcul
+        function updateChart(historical, scenarios, symbol) {
+            const ctx = document.getElementById('cryptoChart');
+            if (!ctx) return;
+            
+            if (chart) chart.destroy();
+            
+            const labels = [...historical.map(h => formatDate(h.date)), 
+                          ...scenarios[0].slice(1).map(s => formatDate(s.date))];
+            
+            const datasets = [{
+                label: 'Histórico',
+                data: [...historical.map(h => h.price), ...new Array(scenarios[0].length - 1).fill(null)],
+                borderColor: '#2c3e50',
+                borderWidth: 3,
+                fill: false,
+                pointRadius: 0
+            }];
+            
+            const colors = ['#f39800', '#00d4aa', '#ff6b9d', '#667eea', '#e74c3c'];
+            scenarios.forEach((scenario, i) => {
+                datasets.push({
+                    label: `Escenario ${i + 1}`,
+                    data: [...new Array(historical.length - 1).fill(null), ...scenario.map(s => s.price)],
+                    borderColor: colors[i],
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    fill: false,
+                    pointRadius: 0
+                });
+            });
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${cryptoData[symbol].name} - Predicción`,
+                            font: { size: 16 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Precio (USD)' }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateStats(current, target, returnPct, vol, trend) {
+            const symbol = document.getElementById('cryptoSymbol').value;
+            
+            if (symbol === 'USDT') {
+                document.getElementById('currentPrice').textContent = `$${current.toFixed(4)}`;
+                document.getElementById('avgFinalPrice').textContent = `$${target.toFixed(4)}`;
+            } else {
+                document.getElementById('currentPrice').textContent = `$${Math.round(current).toLocaleString()}`;
+                document.getElementById('avgFinalPrice').textContent = `$${Math.round(target).toLocaleString()}`;
+            }
+            
+            document.getElementById('expectedReturn').textContent = `${returnPct > 0 ? '+' : ''}${returnPct.toFixed(1)}%`;
+            document.getElementById('volatilityDisplay').textContent = `${vol.toFixed(1)}%`;
+            document.getElementById('trendDisplay').textContent = trend === 'bullish' ? 'Alcista' : 'Bajista';
+            document.getElementById('confidence').textContent = `${Math.round(85 + Math.random() * 10)}%`;
+        }
+        
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return `${date.getMonth() + 1}/${date.getDate()}`;
+        }
+        
+        // Inicialización
+        function init() {
+            log('Inicializando simulador...');
+            
+            if (typeof Chart === 'undefined') {
+                log('Esperando Chart.js...');
+                setTimeout(init, 100);
+                return;
+            }
+            
+            log('Chart.js cargado. Sistema listo.');
+            updateStatus('Sistema iniciado - Haz clic en Analizar');
+            
+            // Ejecutar análisis inicial
+            setTimeout(runAnalysis, 1000);
+        }
+        
+        // Inicializar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+        
+        // Testing
+        window.test = runAnalysis;
+        
+        console.log('Script cargado completamente');
+    </script>
+</body>
+</html>
