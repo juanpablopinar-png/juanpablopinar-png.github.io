@@ -1,629 +1,424 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizador de Excel con Gráficos</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+import React, { useState, useEffect } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { Search, TrendingUp, TrendingDown, DollarSign, Calendar, AlertCircle } from 'lucide-react';
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+const CryptoConsultant = () => {
+  const [selectedCrypto, setSelectedCrypto] = useState('BTC');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [timeframe, setTimeframe] = useState('6M');
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-        }
+  // Datos históricos simulados basados en la información real obtenida
+  const cryptoData = {
+    BTC: {
+      name: 'Bitcoin',
+      symbol: 'BTC',
+      currentPrice: 109250,
+      change24h: -1.76,
+      marketCap: 2162000000000,
+      volume24h: 45600000000,
+      ath: 124171,
+      athDate: '2025-08-14',
+      description: 'La primera y más popular criptomoneda del mundo.',
+      predictions2025: {
+        min: 103756,
+        max: 128000,
+        avg: 116000
+      },
+      keyEvents: [
+        'Máximo histórico de $124,171 en agosto 2025',
+        'Aprobación de ETFs de Bitcoin',
+        'Elección de Trump impulsa mercado crypto',
+        'Halving de Bitcoin en abril 2024'
+      ],
+      historicalData: [
+        { month: 'Mar 2025', price: 76600, volume: 32000000000 },
+        { month: 'Abr 2025', price: 95000, volume: 38000000000 },
+        { month: 'May 2025', price: 111970, volume: 42000000000 },
+        { month: 'Jun 2025', price: 108000, volume: 40000000000 },
+        { month: 'Jul 2025', price: 123000, volume: 48000000000 },
+        { month: 'Ago 2025', price: 124171, volume: 52000000000 },
+        { month: 'Sep 2025', price: 109250, volume: 45600000000 }
+      ]
+    },
+    ETH: {
+      name: 'Ethereum',
+      symbol: 'ETH',
+      currentPrice: 3794,
+      change24h: -2.77,
+      marketCap: 456000000000,
+      volume24h: 38240000000,
+      ath: 4900,
+      athDate: '2025-08-24',
+      description: 'Plataforma líder para contratos inteligentes y aplicaciones descentralizadas.',
+      predictions2025: {
+        min: 3330,
+        max: 6925,
+        avg: 4500
+      },
+      keyEvents: [
+        'Máximo histórico de $4,900 en agosto 2025',
+        'Upgrade Dencun en marzo 2024',
+        'Aprobación de ETFs de Ethereum',
+        'Próximo upgrade Pectra en Q4 2025'
+      ],
+      historicalData: [
+        { month: 'Mar 2025', price: 3200, volume: 22000000000 },
+        { month: 'Abr 2025', price: 3600, volume: 28000000000 },
+        { month: 'May 2025', price: 4100, volume: 32000000000 },
+        { month: 'Jun 2025', price: 3850, volume: 30000000000 },
+        { month: 'Jul 2025', price: 4400, volume: 35000000000 },
+        { month: 'Ago 2025', price: 4900, volume: 44000000000 },
+        { month: 'Sep 2025', price: 3794, volume: 38240000000 }
+      ]
+    },
+    XRP: {
+      name: 'XRP',
+      symbol: 'XRP',
+      currentPrice: 2.82,
+      change24h: 2.5,
+      marketCap: 165000000000,
+      volume24h: 6100000000,
+      ath: 3.84,
+      athDate: '2018-01-07',
+      description: 'Moneda digital diseñada para pagos globales rápidos y de bajo costo.',
+      predictions2025: {
+        min: 3.08,
+        max: 5.81,
+        avg: 3.51
+      },
+      keyEvents: [
+        'SEC retira demanda en marzo 2025',
+        'Posible aprobación de ETF de XRP',
+        'Integración con instituciones financieras',
+        'Lanzamiento de stablecoin RLUSD'
+      ],
+      historicalData: [
+        { month: 'Mar 2025', price: 0.62, volume: 2800000000 },
+        { month: 'Abr 2025', price: 0.85, volume: 3200000000 },
+        { month: 'May 2025', price: 1.45, volume: 4100000000 },
+        { month: 'Jun 2025', price: 2.10, volume: 5200000000 },
+        { month: 'Jul 2025', price: 2.65, volume: 6800000000 },
+        { month: 'Ago 2025', price: 3.20, volume: 7200000000 },
+        { month: 'Sep 2025', price: 2.82, volume: 6100000000 }
+      ]
+    },
+    SOL: {
+      name: 'Solana',
+      symbol: 'SOL',
+      currentPrice: 161,
+      change24h: -2.0,
+      marketCap: 85000000000,
+      volume24h: 4200000000,
+      ath: 293,
+      athDate: '2025-01-15',
+      description: 'Blockchain de alto rendimiento para aplicaciones descentralizadas.',
+      predictions2025: {
+        min: 170,
+        max: 600,
+        avg: 300
+      },
+      keyEvents: [
+        'Máximo de $293 en enero 2025',
+        'Posible aprobación de ETF de SOL',
+        'Crecimiento en DeFi y NFTs',
+        'Mejoras en escalabilidad'
+      ],
+      historicalData: [
+        { month: 'Mar 2025', price: 100, volume: 2100000000 },
+        { month: 'Abr 2025', price: 125, volume: 2800000000 },
+        { month: 'May 2025', price: 180, volume: 3500000000 },
+        { month: 'Jun 2025', price: 155, volume: 3200000000 },
+        { month: 'Jul 2025', price: 190, volume: 4100000000 },
+        { month: 'Ago 2025', price: 175, volume: 3900000000 },
+        { month: 'Sep 2025', price: 161, volume: 4200000000 }
+      ]
+    },
+    ADA: {
+      name: 'Cardano',
+      symbol: 'ADA',
+      currentPrice: 0.73,
+      change24h: -6.0,
+      marketCap: 23700000000,
+      volume24h: 890000000,
+      ath: 3.09,
+      athDate: '2021-09-02',
+      description: 'Plataforma blockchain enfocada en sostenibilidad y escalabilidad.',
+      predictions2025: {
+        min: 0.55,
+        max: 7.00,
+        avg: 1.50
+      },
+      keyEvents: [
+        'Mención de Trump sobre reserva crypto',
+        'Desarrollo continuo de Hydra',
+        'Crecimiento en DeFi',
+        'Partnerships institucionales'
+      ],
+      historicalData: [
+        { month: 'Mar 2025', price: 0.58, volume: 520000000 },
+        { month: 'Abr 2025', price: 0.64, volume: 580000000 },
+        { month: 'May 2025', price: 0.82, volume: 720000000 },
+        { month: 'Jun 2025', price: 0.75, volume: 650000000 },
+        { month: 'Jul 2025', price: 0.89, volume: 810000000 },
+        { month: 'Ago 2025', price: 0.92, volume: 920000000 },
+        { month: 'Sep 2025', price: 0.73, volume: 890000000 }
+      ]
+    }
+  };
 
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+  const filteredCryptos = Object.keys(cryptoData).filter(key =>
+    cryptoData[key].name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    key.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-        .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            margin-bottom: 30px;
-        }
+  const currentCrypto = cryptoData[selectedCrypto];
 
-        .upload-area:hover {
-            border-color: #764ba2;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
-        }
+  const formatPrice = (price) => {
+    if (price >= 1000) {
+      return new Intl.NumberFormat('es-ES', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(price);
+    }
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4
+    }).format(price);
+  };
 
-        .upload-area.dragover {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
-            transform: scale(1.02);
-        }
+  const formatMarketCap = (marketCap) => {
+    if (marketCap >= 1e12) {
+      return `$${(marketCap / 1e12).toFixed(2)}T`;
+    } else if (marketCap >= 1e9) {
+      return `$${(marketCap / 1e9).toFixed(2)}B`;
+    } else {
+      return `$${(marketCap / 1e6).toFixed(2)}M`;
+    }
+  };
 
-        #fileInput {
-            display: none;
-        }
-
-        .upload-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-
-        .upload-text {
-            color: #666;
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-
-        .upload-subtext {
-            color: #999;
-            font-size: 14px;
-        }
-
-        .controls {
-            display: none;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .control-group {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        label {
-            font-weight: 600;
-            color: #555;
-            min-width: 120px;
-        }
-
-        select {
-            flex: 1;
-            padding: 10px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            background: white;
-            cursor: pointer;
-            min-width: 200px;
-        }
-
-        select:hover {
-            border-color: #667eea;
-        }
-
-        select:focus {
-            outline: none;
-            border-color: #764ba2;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 500px;
-            margin-top: 30px;
-            padding: 20px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            display: none;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .chart-container.active {
-            display: block;
-        }
-
-        .data-preview {
-            display: none;
-            margin-top: 30px;
-            overflow-x: auto;
-            animation: fadeIn 0.5s ease;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-        }
-
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        tr:hover {
-            background: #f8f9fa;
-        }
-
-        .info-panel {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-            border-left: 4px solid #667eea;
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .info-panel.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .info-text {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .chart-type-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .chart-type-btn {
-            padding: 8px 20px;
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .chart-type-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-color: transparent;
-        }
-
-        .chart-type-btn:hover:not(.active) {
-            border-color: #667eea;
-            transform: translateY(-2px);
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>📊 Visualizador de Excel con Gráficos</h1>
-        
-        <div class="upload-area" id="uploadArea">
-            <div class="upload-icon">📁</div>
-            <div class="upload-text">Arrastra tu archivo Excel aquí</div>
-            <div class="upload-subtext">o haz clic para seleccionar</div>
-            <input type="file" id="fileInput" accept=".xlsx,.xls">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            Consultor de Criptomonedas
+          </h1>
+          <p className="text-slate-400 text-lg">Análisis de precios de los últimos 6 meses (Marzo - Septiembre 2025)</p>
+          <div className="flex items-center gap-2 mt-2 text-amber-400">
+            <AlertCircle size={16} />
+            <span className="text-sm">Datos actualizados al 2 de septiembre de 2025</span>
+          </div>
         </div>
 
-        <div class="info-panel" id="infoPanel">
-            <div class="info-text">
-                <strong>Archivo cargado:</strong> <span id="fileName"></span> | 
-                <strong>Hojas encontradas:</strong> <span id="sheetCount"></span>
-            </div>
+        {/* Search and Filter */}
+        <div className="mb-6 flex flex-wrap gap-4">
+          <div className="relative flex-1 min-w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+            <input
+              type="text"
+              placeholder="Buscar criptomoneda..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <select
+            value={timeframe}
+            onChange={(e) => setTimeframe(e.target.value)}
+            className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="6M">Últimos 6 meses</option>
+            <option value="1Y">1 año</option>
+            <option value="ALL">Todo el tiempo</option>
+          </select>
         </div>
 
-        <div class="controls" id="controls">
-            <div class="control-group">
-                <label>Hoja de Excel:</label>
-                <select id="sheetSelect">
-                    <option value="">Selecciona una hoja</option>
-                </select>
-            </div>
-
-            <div class="chart-type-selector">
-                <button class="chart-type-btn active" data-type="bar">Barras</button>
-                <button class="chart-type-btn" data-type="line">Líneas</button>
-                <button class="chart-type-btn" data-type="pie">Circular</button>
-                <button class="chart-type-btn" data-type="doughnut">Dona</button>
-                <button class="chart-type-btn" data-type="radar">Radar</button>
-                <button class="chart-type-btn" data-type="polarArea">Área Polar</button>
-            </div>
-
-            <div class="control-group">
-                <label>Eje X (Etiquetas):</label>
-                <select id="xAxis">
-                    <option value="">Selecciona columna</option>
-                </select>
-            </div>
-
-            <div class="control-group">
-                <label>Eje Y (Valores):</label>
-                <select id="yAxis" multiple style="height: 100px;">
-                    <option value="">Selecciona columnas (puedes elegir varias)</option>
-                </select>
-            </div>
-
-            <button id="generateChart" disabled>Generar Gráfico</button>
+        {/* Crypto Selection */}
+        <div className="mb-6 grid grid-cols-2 md:grid-cols-5 gap-3">
+          {filteredCryptos.map(crypto => {
+            const data = cryptoData[crypto];
+            return (
+              <button
+                key={crypto}
+                onClick={() => setSelectedCrypto(crypto)}
+                className={`p-4 rounded-lg border transition-all ${
+                  selectedCrypto === crypto
+                    ? 'bg-blue-600 border-blue-500'
+                    : 'bg-slate-800 border-slate-700 hover:bg-slate-700'
+                }`}
+              >
+                <div className="font-bold text-lg">{crypto}</div>
+                <div className="text-sm text-slate-400">{data.name}</div>
+                <div className={`text-sm flex items-center gap-1 ${
+                  data.change24h >= 0 ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {data.change24h >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                  {Math.abs(data.change24h).toFixed(2)}%
+                </div>
+              </button>
+            );
+          })}
         </div>
 
-        <div class="chart-container" id="chartContainer">
-            <canvas id="myChart"></canvas>
+        {/* Main Content */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Price Info */}
+          <div className="lg:col-span-1">
+            <div className="bg-slate-800 rounded-xl p-6 mb-6">
+              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                <DollarSign className="text-yellow-500" />
+                {currentCrypto.name} ({currentCrypto.symbol})
+              </h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <div className="text-3xl font-bold text-green-400">
+                    {formatPrice(currentCrypto.currentPrice)}
+                  </div>
+                  <div className={`flex items-center gap-2 ${
+                    currentCrypto.change24h >= 0 ? 'text-green-400' : 'text-red-400'
+                  }`}>
+                    {currentCrypto.change24h >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+                    <span className="text-lg font-semibold">
+                      {currentCrypto.change24h >= 0 ? '+' : ''}{currentCrypto.change24h.toFixed(2)}%
+                    </span>
+                    <span className="text-slate-400">24h</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="text-slate-400">Cap. Mercado</div>
+                    <div className="font-semibold">{formatMarketCap(currentCrypto.marketCap)}</div>
+                  </div>
+                  <div>
+                    <div className="text-slate-400">Volumen 24h</div>
+                    <div className="font-semibold">{formatMarketCap(currentCrypto.volume24h)}</div>
+                  </div>
+                  <div>
+                    <div className="text-slate-400">Máximo histórico</div>
+                    <div className="font-semibold">{formatPrice(currentCrypto.ath)}</div>
+                  </div>
+                  <div>
+                    <div className="text-slate-400">Fecha ATH</div>
+                    <div className="font-semibold">{currentCrypto.athDate}</div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-slate-400 mb-2">Descripción</div>
+                  <p className="text-sm">{currentCrypto.description}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Predictions */}
+            <div className="bg-slate-800 rounded-xl p-6">
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Calendar className="text-purple-500" />
+                Predicciones 2025
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Mínimo</span>
+                  <span className="font-semibold text-red-400">
+                    {formatPrice(currentCrypto.predictions2025.min)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Promedio</span>
+                  <span className="font-semibold text-yellow-400">
+                    {formatPrice(currentCrypto.predictions2025.avg)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Máximo</span>
+                  <span className="font-semibold text-green-400">
+                    {formatPrice(currentCrypto.predictions2025.max)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Charts */}
+          <div className="lg:col-span-2">
+            <div className="bg-slate-800 rounded-xl p-6 mb-6">
+              <h3 className="text-xl font-bold mb-4">Evolución de Precios - Últimos 6 Meses</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={currentCrypto.historicalData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="month" stroke="#9CA3AF" />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1F2937',
+                      border: '1px solid #374151',
+                      borderRadius: '8px'
+                    }}
+                    formatter={(value) => [formatPrice(value), 'Precio']}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="price"
+                    stroke="#3B82F6"
+                    strokeWidth={3}
+                    dot={{ fill: '#3B82F6', strokeWidth: 2, r: 6 }}
+                    activeDot={{ r: 8 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="bg-slate-800 rounded-xl p-6 mb-6">
+              <h3 className="text-xl font-bold mb-4">Volumen de Trading - Últimos 6 Meses</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={currentCrypto.historicalData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="month" stroke="#9CA3AF" />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1F2937',
+                      border: '1px solid #374151',
+                      borderRadius: '8px'
+                    }}
+                    formatter={(value) => [formatMarketCap(value), 'Volumen']}
+                  />
+                  <Bar dataKey="volume" fill="#10B981" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Key Events */}
+            <div className="bg-slate-800 rounded-xl p-6">
+              <h3 className="text-xl font-bold mb-4">Eventos Clave</h3>
+              <div className="space-y-3">
+                {currentCrypto.keyEvents.map((event, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <span className="text-sm">{event}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="data-preview" id="dataPreview">
-            <h3 style="margin-bottom: 15px; color: #333;">Vista previa de datos (primeras 10 filas)</h3>
-            <div id="tableContainer"></div>
+        {/* Footer */}
+        <div className="mt-8 text-center text-sm text-slate-500">
+          <p>⚠️ Esta información es solo para fines educativos. No constituye asesoramiento financiero.</p>
+          <p>Los precios de las criptomonedas son altamente volátiles. Investiga antes de tomar decisiones de inversión.</p>
         </div>
+      </div>
     </div>
+  );
+};
 
-    <script>
-        let workbook = null;
-        let currentData = null;
-        let currentChart = null;
-        let selectedChartType = 'bar';
-
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const controls = document.getElementById('controls');
-        const sheetSelect = document.getElementById('sheetSelect');
-        const xAxis = document.getElementById('xAxis');
-        const yAxis = document.getElementById('yAxis');
-        const generateChart = document.getElementById('generateChart');
-        const chartContainer = document.getElementById('chartContainer');
-        const dataPreview = document.getElementById('dataPreview');
-        const infoPanel = document.getElementById('infoPanel');
-
-        // Configuración de tipos de gráfico
-        const chartTypeButtons = document.querySelectorAll('.chart-type-btn');
-        chartTypeButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
-                chartTypeButtons.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                selectedChartType = this.dataset.type;
-            });
-        });
-
-        // Manejo de carga de archivos
-        uploadArea.addEventListener('click', () => fileInput.click());
-        
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFile(files[0]);
-            }
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFile(e.target.files[0]);
-            }
-        });
-
-        function handleFile(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    workbook = XLSX.read(e.target.result, { type: 'binary' });
-                    
-                    // Mostrar información del archivo
-                    document.getElementById('fileName').textContent = file.name;
-                    document.getElementById('sheetCount').textContent = workbook.SheetNames.length;
-                    infoPanel.classList.add('active');
-                    
-                    // Llenar selector de hojas
-                    sheetSelect.innerHTML = '<option value="">Selecciona una hoja</option>';
-                    workbook.SheetNames.forEach(name => {
-                        const option = document.createElement('option');
-                        option.value = name;
-                        option.textContent = name;
-                        sheetSelect.appendChild(option);
-                    });
-                    
-                    controls.style.display = 'block';
-                    
-                    // Auto-seleccionar primera hoja si solo hay una
-                    if (workbook.SheetNames.length === 1) {
-                        sheetSelect.value = workbook.SheetNames[0];
-                        loadSheetData(workbook.SheetNames[0]);
-                    }
-                } catch (error) {
-                    alert('Error al leer el archivo. Asegúrate de que sea un archivo Excel válido.');
-                    console.error(error);
-                }
-            };
-            reader.readAsBinaryString(file);
-        }
-
-        sheetSelect.addEventListener('change', (e) => {
-            if (e.target.value) {
-                loadSheetData(e.target.value);
-            }
-        });
-
-        function loadSheetData(sheetName) {
-            const worksheet = workbook.Sheets[sheetName];
-            currentData = XLSX.utils.sheet_to_json(worksheet);
-            
-            if (currentData.length === 0) {
-                alert('La hoja seleccionada no contiene datos.');
-                return;
-            }
-            
-            // Obtener columnas
-            const columns = Object.keys(currentData[0]);
-            
-            // Llenar selectores de ejes
-            xAxis.innerHTML = '<option value="">Selecciona columna</option>';
-            yAxis.innerHTML = '';
-            
-            columns.forEach(col => {
-                const optionX = document.createElement('option');
-                optionX.value = col;
-                optionX.textContent = col;
-                xAxis.appendChild(optionX);
-                
-                const optionY = document.createElement('option');
-                optionY.value = col;
-                optionY.textContent = col;
-                yAxis.appendChild(optionY);
-            });
-            
-            // Mostrar vista previa de datos
-            showDataPreview();
-        }
-
-        function showDataPreview() {
-            const tableContainer = document.getElementById('tableContainer');
-            const previewData = currentData.slice(0, 10);
-            
-            let tableHTML = '<table><thead><tr>';
-            const columns = Object.keys(currentData[0]);
-            
-            columns.forEach(col => {
-                tableHTML += `<th>${col}</th>`;
-            });
-            tableHTML += '</tr></thead><tbody>';
-            
-            previewData.forEach(row => {
-                tableHTML += '<tr>';
-                columns.forEach(col => {
-                    tableHTML += `<td>${row[col] || ''}</td>`;
-                });
-                tableHTML += '</tr>';
-            });
-            
-            tableHTML += '</tbody></table>';
-            tableContainer.innerHTML = tableHTML;
-            dataPreview.style.display = 'block';
-        }
-
-        xAxis.addEventListener('change', checkIfCanGenerate);
-        yAxis.addEventListener('change', checkIfCanGenerate);
-
-        function checkIfCanGenerate() {
-            const selectedY = Array.from(yAxis.selectedOptions).map(option => option.value);
-            generateChart.disabled = !(xAxis.value && selectedY.length > 0 && selectedY[0] !== '');
-        }
-
-        generateChart.addEventListener('click', () => {
-            const xColumn = xAxis.value;
-            const yColumns = Array.from(yAxis.selectedOptions).map(option => option.value);
-            
-            if (!xColumn || yColumns.length === 0) {
-                alert('Por favor selecciona columnas para ambos ejes.');
-                return;
-            }
-            
-            generateChartFromData(xColumn, yColumns);
-        });
-
-        function generateChartFromData(xColumn, yColumns) {
-            const labels = currentData.map(row => row[xColumn]);
-            
-            // Colores vibrantes para múltiples series
-            const colors = [
-                'rgba(102, 126, 234, 0.8)',
-                'rgba(118, 75, 162, 0.8)',
-                'rgba(255, 99, 132, 0.8)',
-                'rgba(54, 162, 235, 0.8)',
-                'rgba(255, 206, 86, 0.8)',
-                'rgba(75, 192, 192, 0.8)',
-                'rgba(153, 102, 255, 0.8)',
-                'rgba(255, 159, 64, 0.8)'
-            ];
-            
-            const borderColors = colors.map(c => c.replace('0.8', '1'));
-            
-            const datasets = yColumns.map((col, index) => {
-                const data = currentData.map(row => {
-                    const value = parseFloat(row[col]);
-                    return isNaN(value) ? 0 : value;
-                });
-                
-                return {
-                    label: col,
-                    data: data,
-                    backgroundColor: colors[index % colors.length],
-                    borderColor: borderColors[index % borderColors.length],
-                    borderWidth: 2,
-                    tension: 0.3
-                };
-            });
-            
-            // Si hay un gráfico anterior, destruirlo
-            if (currentChart) {
-                currentChart.destroy();
-            }
-            
-            const ctx = document.getElementById('myChart').getContext('2d');
-            
-            // Configuración específica según el tipo de gráfico
-            let options = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            padding: 15,
-                            font: {
-                                size: 14
-                            }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        cornerRadius: 8,
-                        titleFont: {
-                            size: 14
-                        },
-                        bodyFont: {
-                            size: 13
-                        }
-                    }
-                }
-            };
-            
-            // Ajustes específicos para cada tipo de gráfico
-            if (selectedChartType === 'line') {
-                datasets.forEach(dataset => {
-                    dataset.fill = false;
-                    dataset.pointRadius = 4;
-                    dataset.pointHoverRadius = 6;
-                });
-                options.scales = {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                };
-            } else if (selectedChartType === 'bar') {
-                options.scales = {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                };
-            } else if (selectedChartType === 'radar') {
-                options.scales = {
-                    r: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.1)'
-                        }
-                    }
-                };
-            } else if (selectedChartType === 'polarArea') {
-                // Para gráficos de área polar, usar solo la primera serie
-                datasets.splice(1);
-                options.scales = {
-                    r: {
-                        beginAtZero: true
-                    }
-                };
-            } else if (selectedChartType === 'pie' || selectedChartType === 'doughnut') {
-                // Para gráficos circulares, usar solo la primera serie
-                datasets.splice(1);
-                datasets[0].backgroundColor = labels.map((_, i) => colors[i % colors.length]);
-                datasets[0].borderColor = labels.map((_, i) => borderColors[i % borderColors.length]);
-            }
-            
-            currentChart = new Chart(ctx, {
-                type: selectedChartType,
-                data: {
-                    labels: labels,
-                    datasets: datasets
-                },
-                options: options
-            });
-            
-            chartContainer.classList.add('active');
-            chartContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    </script>
-</body>
-</html>
+export default CryptoConsultant;
