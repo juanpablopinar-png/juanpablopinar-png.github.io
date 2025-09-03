@@ -1,148 +1,403 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Chat de gastos</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      background: #f7f7f7;
-      color: #333;
-    }
-    h1 {
-      text-align: center;
-    }
-    .contenedor {
-      max-width: 800px;
-      margin: auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    #chat {
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      padding: 10px;
-      height: 200px;
-      overflow-y: auto;
-      margin-bottom: 10px;
-      background: #fafafa;
-    }
-    #inputGasto {
-      width: 70%;
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    button {
-      padding: 10px 15px;
-      margin-left: 5px;
-      border: none;
-      border-radius: 5px;
-      background: #36a2eb;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #2586c6;
-    }
-    canvas {
-      margin-top: 30px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Gastos en Tiempo Real</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, addDoc, getDocs, orderBy, getDocsFromCache, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration (DO NOT EDIT)
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        let app;
+        let db;
+        let auth;
+        let userId = null;
+
+        // Initialize Firebase on window load
+        window.onload = function() {
+            try {
+                if (Object.keys(firebaseConfig).length > 0) {
+                    app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+                    // setLogLevel('debug');
+                } else {
+                    console.error("Firebase config is missing.");
+                    showMessage("Error: No se pudo conectar a la base de datos.");
+                }
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                showMessage("Error: No se pudo conectar a la base de datos.");
+            }
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    document.getElementById('userIdDisplay').textContent = `ID de usuario: ${userId}`;
+                    if (window.setupApp) {
+                        window.setupApp();
+                    }
+                } else {
+                    try {
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch (error) {
+                        console.error("Error signing in:", error);
+                        showMessage("Error al iniciar sesión. Por favor, intente recargar.");
+                    }
+                }
+            });
+        };
+
+        window.db = db;
+        window.auth = auth;
+        window.getUserId = () => userId;
+        window.appId = appId;
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: #f0f4f8;
+            color: #2c3e50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #34495e;
+            font-weight: 600;
+        }
+        #userIdDisplay {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+        .form-gasto {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .form-gasto input, .form-gasto select, .form-gasto button {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #dfe6e9;
+            box-sizing: border-box;
+            font-size: 1rem;
+            color: #34495e;
+        }
+        .form-gasto button {
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            grid-column: span 2;
+        }
+        .form-gasto button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        #lista-gastos {
+            border: 1px solid #dfe6e9;
+            border-radius: 8px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .gasto-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #ecf0f1;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .gasto-detalle {
+            flex-grow: 1;
+        }
+        .gasto-detalle span {
+            display: block;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+        .delete-btn:hover {
+            opacity: 1;
+        }
+        canvas {
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+        }
+        .message-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(44, 62, 80, 0.95);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            font-weight: 600;
+            display: none;
+        }
+        .message-modal.show {
+            display: block;
+        }
+        @media (max-width: 600px) {
+            .form-gasto {
+                grid-template-columns: 1fr;
+            }
+            .form-gasto button {
+                grid-column: span 1;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="contenedor">
-    <h1>Chat de gastos</h1>
-    
-    <div id="chat"></div>
-    <input type="text" id="inputGasto" placeholder="Ejemplo: Supermercado 20000">
-    <button onclick="agregarGasto()">Enviar</button>
+    <div class="container">
+        <h1>Gestor de Gastos</h1>
+        <p id="userIdDisplay">Cargando...</p>
 
-    <canvas id="gastosChart"></canvas>
-  </div>
+        <div class="form-gasto">
+            <input type="text" id="inputDescripcion" placeholder="Descripción: Supermercado">
+            <input type="number" id="inputMonto" placeholder="Monto: 20000">
+            <select id="inputCategoria">
+                <option value="Sin categoría">Categoría</option>
+                <option value="Alimentación">Alimentación</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Servicios">Servicios</option>
+                <option value="Ocio">Ocio</option>
+                <option value="Salud">Salud</option>
+                <option value="Hogar">Hogar</option>
+                <option value="Otros">Otros</option>
+            </select>
+            <input type="date" id="inputFecha">
+            <input type="text" id="inputComentario" placeholder="Comentario extra (opcional)">
+            <button onclick="agregarGasto()">Agregar Gasto</button>
+        </div>
 
-  <script>
-    let gastos = JSON.parse(localStorage.getItem("gastos")) || [];
+        <div id="lista-gastos"></div>
 
-    const chat = document.getElementById("chat");
-    const inputGasto = document.getElementById("inputGasto");
-    const ctx = document.getElementById("gastosChart");
+        <canvas id="gastosChart"></canvas>
+    </div>
 
-    // Inicializar gráfico
-    let chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: [],
-        datasets: [{
-          label: 'Gastos mensuales',
-          data: [],
-          backgroundColor: 'rgba(54, 162, 235, 0.7)'
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: value => "$" + value.toLocaleString()
-            }
-          }
+    <div id="messageModal" class="message-modal"></div>
+
+    <script type="module">
+        import { getFirestore, addDoc, collection, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        let gastos = [];
+        let chart = null;
+
+        const listaGastos = document.getElementById("lista-gastos");
+        const inputDescripcion = document.getElementById("inputDescripcion");
+        const inputMonto = document.getElementById("inputMonto");
+        const inputCategoria = document.getElementById("inputCategoria");
+        const inputFecha = document.getElementById("inputFecha");
+        const inputComentario = document.getElementById("inputComentario");
+        const ctx = document.getElementById("gastosChart");
+
+        function showMessage(msg) {
+            const modal = document.getElementById('messageModal');
+            modal.textContent = msg;
+            modal.classList.add('show');
+            setTimeout(() => {
+                modal.classList.remove('show');
+            }, 3000);
         }
-      }
-    });
 
-    // Mostrar gastos existentes
-    function renderizar() {
-      chat.innerHTML = "";
-      const meses = {};
+        window.setupApp = function() {
+            if (!window.db || !window.getUserId()) {
+                console.error("Firebase no está inicializado o no hay usuario.");
+                return;
+            }
+            const userId = window.getUserId();
+            const collectionPath = `artifacts/${window.appId}/users/${userId}/gastos`;
+            const gastosCollection = collection(window.db, collectionPath);
 
-      gastos.forEach(g => {
-        // Mostrar en chat
-        const div = document.createElement("div");
-        div.textContent = `${g.fecha} - ${g.descripcion}: $${g.monto.toLocaleString()}`;
-        chat.appendChild(div);
+            onSnapshot(gastosCollection, (snapshot) => {
+                gastos = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                renderizar();
+            }, (error) => {
+                console.error("Error al obtener datos:", error);
+                showMessage("Error: No se pudieron cargar los gastos.");
+            });
+        };
 
-        // Agrupar por mes
-        const mes = g.fecha.slice(0,7);
-        meses[mes] = (meses[mes] || 0) + g.monto;
-      });
+        function renderizar() {
+            listaGastos.innerHTML = "";
+            const gastosPorCategoria = {};
 
-      // Actualizar gráfico
-      chart.data.labels = Object.keys(meses);
-      chart.data.datasets[0].data = Object.values(meses);
-      chart.update();
+            gastos.forEach(gasto => {
+                // Display in list
+                const div = document.createElement("div");
+                div.className = "gasto-item";
+                div.innerHTML = `
+                    <div class="gasto-detalle">
+                        <strong>${gasto.categoria || 'Sin categoría'}:</strong> $${gasto.monto ? gasto.monto.toLocaleString('es-CL') : '0'}
+                        <span>${gasto.descripcion} (${gasto.fecha})</span>
+                        <span>${gasto.comentario || ''}</span>
+                    </div>
+                    <button class="delete-btn" onclick="eliminarGasto('${gasto.id}')">🗑️</button>
+                `;
+                listaGastos.appendChild(div);
 
-      // Guardar en localStorage
-      localStorage.setItem("gastos", JSON.stringify(gastos));
-    }
+                // Group for chart
+                const categoria = gasto.categoria || 'Sin categoría';
+                if (gasto.monto) {
+                    gastosPorCategoria[categoria] = (gastosPorCategoria[categoria] || 0) + parseFloat(gasto.monto);
+                }
+            });
 
-    // Agregar gasto desde el input
-    function agregarGasto() {
-      const texto = inputGasto.value.trim();
-      if (!texto) return;
+            actualizarGrafico(gastosPorCategoria);
+        }
 
-      const partes = texto.split(" ");
-      const monto = parseFloat(partes.pop().replace(/[^0-9]/g,"")); // último número
-      const descripcion = partes.join(" ");
-      const fecha = new Date().toISOString().slice(0,10);
+        function actualizarGrafico(data) {
+            const labels = Object.keys(data);
+            const datasetData = Object.values(data);
+            const backgroundColors = [
+                '#3498db', '#e74c3c', '#2ecc71', '#f1c40f', '#9b59b6', '#34495e', '#1abc9c', '#e67e22'
+            ];
 
-      if (!descripcion || isNaN(monto)) {
-        alert("Formato inválido. Usa: Descripción 12345");
-        return;
-      }
+            if (chart) {
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = datasetData;
+                chart.data.datasets[0].backgroundColor = backgroundColors.slice(0, labels.length);
+                chart.update();
+            } else {
+                chart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Gastos por Categoría',
+                            data: datasetData,
+                            backgroundColor: backgroundColors.slice(0, labels.length),
+                            borderWidth: 1,
+                            borderColor: '#fff',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(tooltipItem) {
+                                        let label = tooltipItem.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        label += '$' + tooltipItem.raw.toLocaleString('es-CL');
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
 
-      gastos.push({ descripcion, monto, fecha });
-      inputGasto.value = "";
-      renderizar();
-    }
+        window.agregarGasto = async function() {
+            const descripcion = inputDescripcion.value.trim();
+            const monto = parseFloat(inputMonto.value);
+            const categoria = inputCategoria.value;
+            const fecha = inputFecha.value || new Date().toISOString().slice(0, 10);
+            const comentario = inputComentario.value.trim();
 
-    // Renderizar al inicio
-    renderizar();
-  </script>
+            if (!descripcion || isNaN(monto) || monto <= 0) {
+                showMessage("Por favor, ingrese una descripción y un monto válido.");
+                return;
+            }
+
+            try {
+                const userId = window.getUserId();
+                const collectionPath = `artifacts/${window.appId}/users/${userId}/gastos`;
+                const gastosCollection = collection(window.db, collectionPath);
+                await addDoc(gastosCollection, {
+                    descripcion,
+                    monto,
+                    categoria,
+                    fecha,
+                    comentario,
+                    timestamp: new Date()
+                });
+
+                inputDescripcion.value = "";
+                inputMonto.value = "";
+                inputCategoria.value = "Sin categoría";
+                inputComentario.value = "";
+                inputFecha.value = "";
+            } catch (e) {
+                console.error("Error al agregar documento: ", e);
+                showMessage("Error: No se pudo agregar el gasto.");
+            }
+        };
+
+        window.eliminarGasto = async function(id) {
+            try {
+                const userId = window.getUserId();
+                const collectionPath = `artifacts/${window.appId}/users/${userId}/gastos`;
+                const docRef = doc(window.db, collectionPath, id);
+                await deleteDoc(docRef);
+                showMessage("Gasto eliminado.");
+            } catch (e) {
+                console.error("Error al eliminar documento: ", e);
+                showMessage("Error: No se pudo eliminar el gasto.");
+            }
+        };
+    </script>
 </body>
 </html>
-
