@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Mis gastos</title>
+  <title>Chat de gastos</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
@@ -22,73 +22,127 @@
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+    #chat {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      height: 200px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      background: #fafafa;
+    }
+    #inputGasto {
+      width: 70%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 15px;
+      margin-left: 5px;
+      border: none;
+      border-radius: 5px;
+      background: #36a2eb;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2586c6;
+    }
     canvas {
       margin-top: 30px;
-    }
-    ul {
-      margin-top: 20px;
-      padding-left: 20px;
-    }
-    li {
-      margin-bottom: 5px;
     }
   </style>
 </head>
 <body>
   <div class="contenedor">
-    <h1>Registro de gastos</h1>
+    <h1>Chat de gastos</h1>
+    
+    <div id="chat"></div>
+    <input type="text" id="inputGasto" placeholder="Ejemplo: Supermercado 20000">
+    <button onclick="agregarGasto()">Enviar</button>
+
     <canvas id="gastosChart"></canvas>
-    <h2>Lista de gastos</h2>
-    <ul id="listaGastos"></ul>
   </div>
 
   <script>
-    // Cargar los datos del archivo data.json
-    fetch('data.json')
-      .then(res => res.json())
-      .then(datos => {
-        const meses = {};
-        const lista = document.getElementById("listaGastos");
+    let gastos = JSON.parse(localStorage.getItem("gastos")) || [];
 
-        // Mostrar lista de gastos
-        datos.forEach(item => {
-          const li = document.createElement("li");
-          li.textContent = `${item.fecha} - ${item.descripcion}: $${item.monto.toLocaleString()}`;
-          lista.appendChild(li);
+    const chat = document.getElementById("chat");
+    const inputGasto = document.getElementById("inputGasto");
+    const ctx = document.getElementById("gastosChart");
 
-          // Agrupar por mes
-          const mes = item.fecha.slice(0,7); // YYYY-MM
-          meses[mes] = (meses[mes] || 0) + item.monto;
-        });
-
-        // Crear gráfico
-        new Chart(document.getElementById('gastosChart'), {
-          type: 'bar',
-          data: {
-            labels: Object.keys(meses),
-            datasets: [{
-              label: 'Gastos mensuales',
-              data: Object.values(meses),
-              backgroundColor: 'rgba(54, 162, 235, 0.7)'
-            }]
-          },
-          options: {
-            scales: {
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  callback: function(value) {
-                    return '$' + value.toLocaleString();
-                  }
-                }
-              }
+    // Inicializar gráfico
+    let chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Gastos mensuales',
+          data: [],
+          backgroundColor: 'rgba(54, 162, 235, 0.7)'
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: value => "$" + value.toLocaleString()
             }
           }
-        });
-      })
-      .catch(err => {
-        console.error("Error cargando data.json:", err);
+        }
+      }
+    });
+
+    // Mostrar gastos existentes
+    function renderizar() {
+      chat.innerHTML = "";
+      const meses = {};
+
+      gastos.forEach(g => {
+        // Mostrar en chat
+        const div = document.createElement("div");
+        div.textContent = `${g.fecha} - ${g.descripcion}: $${g.monto.toLocaleString()}`;
+        chat.appendChild(div);
+
+        // Agrupar por mes
+        const mes = g.fecha.slice(0,7);
+        meses[mes] = (meses[mes] || 0) + g.monto;
       });
+
+      // Actualizar gráfico
+      chart.data.labels = Object.keys(meses);
+      chart.data.datasets[0].data = Object.values(meses);
+      chart.update();
+
+      // Guardar en localStorage
+      localStorage.setItem("gastos", JSON.stringify(gastos));
+    }
+
+    // Agregar gasto desde el input
+    function agregarGasto() {
+      const texto = inputGasto.value.trim();
+      if (!texto) return;
+
+      const partes = texto.split(" ");
+      const monto = parseFloat(partes.pop().replace(/[^0-9]/g,"")); // último número
+      const descripcion = partes.join(" ");
+      const fecha = new Date().toISOString().slice(0,10);
+
+      if (!descripcion || isNaN(monto)) {
+        alert("Formato inválido. Usa: Descripción 12345");
+        return;
+      }
+
+      gastos.push({ descripcion, monto, fecha });
+      inputGasto.value = "";
+      renderizar();
+    }
+
+    // Renderizar al inicio
+    renderizar();
   </script>
 </body>
 </html>
+
