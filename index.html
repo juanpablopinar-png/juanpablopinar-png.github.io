@@ -219,7 +219,7 @@
             </select>
             <input type="date" id="inputFecha">
             <input type="text" id="inputComentario" placeholder="Comentario extra (opcional)">
-            <button onclick="agregarGasto()">Agregar Gasto</button>
+            <button id="addGastoButton">Agregar Gasto</button>
         </div>
 
         <div id="lista-gastos"></div>
@@ -241,6 +241,7 @@
         const inputCategoria = document.getElementById("inputCategoria");
         const inputFecha = document.getElementById("inputFecha");
         const inputComentario = document.getElementById("inputComentario");
+        const addGastoButton = document.getElementById("addGastoButton");
         const ctx = document.getElementById("gastosChart");
 
         function showMessage(msg) {
@@ -270,6 +271,47 @@
             }, (error) => {
                 console.error("Error al obtener datos:", error);
                 showMessage("Error: No se pudieron cargar los gastos.");
+            });
+            
+            // Event listener for adding a new expense
+            addGastoButton.addEventListener('click', async () => {
+                const descripcion = inputDescripcion.value.trim();
+                const monto = parseFloat(inputMonto.value);
+                const categoria = inputCategoria.value;
+                const fecha = inputFecha.value || new Date().toISOString().slice(0, 10);
+                const comentario = inputComentario.value.trim();
+
+                if (!descripcion || isNaN(monto) || monto <= 0) {
+                    showMessage("Por favor, ingrese una descripción y un monto válido.");
+                    return;
+                }
+
+                try {
+                    addGastoButton.textContent = 'Agregando...';
+                    addGastoButton.disabled = true;
+
+                    await addDoc(gastosCollection, {
+                        descripcion,
+                        monto,
+                        categoria,
+                        fecha,
+                        comentario,
+                        timestamp: new Date()
+                    });
+
+                    inputDescripcion.value = "";
+                    inputMonto.value = "";
+                    inputCategoria.value = "Sin categoría";
+                    inputComentario.value = "";
+                    inputFecha.value = "";
+                    showMessage("Gasto agregado correctamente.");
+                } catch (e) {
+                    console.error("Error al agregar documento: ", e);
+                    showMessage("Error: No se pudo agregar el gasto.");
+                } finally {
+                    addGastoButton.textContent = 'Agregar Gasto';
+                    addGastoButton.disabled = false;
+                }
             });
         };
 
@@ -350,42 +392,6 @@
             }
         }
 
-        window.agregarGasto = async function() {
-            const descripcion = inputDescripcion.value.trim();
-            const monto = parseFloat(inputMonto.value);
-            const categoria = inputCategoria.value;
-            const fecha = inputFecha.value || new Date().toISOString().slice(0, 10);
-            const comentario = inputComentario.value.trim();
-
-            if (!descripcion || isNaN(monto) || monto <= 0) {
-                showMessage("Por favor, ingrese una descripción y un monto válido.");
-                return;
-            }
-
-            try {
-                const userId = window.getUserId();
-                const collectionPath = `artifacts/${window.appId}/users/${userId}/gastos`;
-                const gastosCollection = collection(window.db, collectionPath);
-                await addDoc(gastosCollection, {
-                    descripcion,
-                    monto,
-                    categoria,
-                    fecha,
-                    comentario,
-                    timestamp: new Date()
-                });
-
-                inputDescripcion.value = "";
-                inputMonto.value = "";
-                inputCategoria.value = "Sin categoría";
-                inputComentario.value = "";
-                inputFecha.value = "";
-            } catch (e) {
-                console.error("Error al agregar documento: ", e);
-                showMessage("Error: No se pudo agregar el gasto.");
-            }
-        };
-
         window.eliminarGasto = async function(id) {
             try {
                 const userId = window.getUserId();
@@ -401,3 +407,4 @@
     </script>
 </body>
 </html>
+
