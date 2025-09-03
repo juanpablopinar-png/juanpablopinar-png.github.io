@@ -27,6 +27,7 @@
     }
     ul {
       margin-top: 20px;
+      padding-left: 20px;
     }
     li {
       margin-bottom: 5px;
@@ -52,7 +53,7 @@
         // Mostrar lista de gastos
         datos.forEach(item => {
           const li = document.createElement("li");
-          li.textContent = `${item.fecha} - ${item.descripcion}: $${item.monto}`;
+          li.textContent = `${item.fecha} - ${item.descripcion}: $${item.monto.toLocaleString()}`;
           lista.appendChild(li);
 
           // Agrupar por mes
@@ -73,7 +74,14 @@
           },
           options: {
             scales: {
-              y: { beginAtZero: true }
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function(value) {
+                    return '$' + value.toLocaleString();
+                  }
+                }
+              }
             }
           }
         });
