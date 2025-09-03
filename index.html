@@ -1,708 +1,86 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sudoku Challenge - 5 Niveles</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            color: white;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .level-selector {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .level-btn {
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            color: white;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .level-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .level-btn.active {
-            background: rgba(255, 255, 255, 0.4);
-            border-color: #fff;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        .game-container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            backdrop-filter: blur(15px);
-        }
-
-        .game-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            color: #333;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .info-item {
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5a67d8;
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background: #e53e3e;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #c53030;
-            transform: translateY(-2px);
-        }
-
-        .btn-success {
-            background: #38a169;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #2f855a;
-            transform: translateY(-2px);
-        }
-
-        .sudoku-grid {
-            display: grid;
-            grid-template-columns: repeat(9, 1fr);
-            gap: 2px;
-            background: #333;
-            border: 3px solid #333;
-            border-radius: 10px;
-            padding: 5px;
-            margin: 0 auto;
-            width: fit-content;
-            max-width: 100%;
-        }
-
-        .sudoku-cell {
-            width: 45px;
-            height: 45px;
-            border: none;
-            text-align: center;
-            font-size: 1.4rem;
-            font-weight: bold;
-            background: white;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-
-        .sudoku-cell:focus {
-            outline: 3px solid #667eea;
-            background: #f0f8ff;
-        }
-
-        .sudoku-cell.prefilled {
-            background: #e2e8f0;
-            color: #2d3748;
-            font-weight: 900;
-        }
-
-        .sudoku-cell.error {
-            background: #fed7d7;
-            color: #e53e3e;
-        }
-
-        .sudoku-cell.correct {
-            background: #c6f6d5;
-            color: #38a169;
-        }
-
-        .thick-border-right {
-            border-right: 3px solid #333 !important;
-        }
-
-        .thick-border-bottom {
-            border-bottom: 3px solid #333 !important;
-        }
-
-        .completion-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            color: #333;
-            max-width: 400px;
-            animation: modalPop 0.5s ease;
-        }
-
-        @keyframes modalPop {
-            0% { transform: scale(0.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .modal-content h2 {
-            color: #38a169;
-            margin-bottom: 20px;
-            font-size: 2rem;
-        }
-
-        .stars {
-            font-size: 2rem;
-            margin: 20px 0;
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .sudoku-cell {
-                width: 35px;
-                height: 35px;
-                font-size: 1.2rem;
-            }
-            
-            .game-container {
-                padding: 20px;
-            }
-            
-            .game-info {
-                justify-content: center;
-                text-align: center;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .sudoku-cell {
-                width: 30px;
-                height: 30px;
-                font-size: 1rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Mis gastos</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f7f7f7;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+    }
+    .contenedor {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    canvas {
+      margin-top: 30px;
+    }
+    ul {
+      margin-top: 20px;
+    }
+    li {
+      margin-bottom: 5px;
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🧩 Sudoku Challenge</h1>
-        <p>5 Niveles de Dificultad - ¡Pon a prueba tu mente!</p>
-    </div>
+  <div class="contenedor">
+    <h1>Registro de gastos</h1>
+    <canvas id="gastosChart"></canvas>
+    <h2>Lista de gastos</h2>
+    <ul id="listaGastos"></ul>
+  </div>
 
-    <div class="level-selector">
-        <button class="level-btn active" onclick="selectLevel(1)">🟢 Nivel 1<br><small>Principiante</small></button>
-        <button class="level-btn" onclick="selectLevel(2)">🟡 Nivel 2<br><small>Fácil</small></button>
-        <button class="level-btn" onclick="selectLevel(3)">🟠 Nivel 3<br><small>Intermedio</small></button>
-        <button class="level-btn" onclick="selectLevel(4)">🔴 Nivel 4<br><small>Difícil</small></button>
-        <button class="level-btn" onclick="selectLevel(5)">⚫ Nivel 5<br><small>Experto</small></button>
-    </div>
+  <script>
+    // Cargar los datos del archivo data.json
+    fetch('data.json')
+      .then(res => res.json())
+      .then(datos => {
+        const meses = {};
+        const lista = document.getElementById("listaGastos");
 
-    <div class="game-container">
-        <div class="game-info">
-            <div class="info-item">Nivel: <span id="currentLevel">1 - Principiante</span></div>
-            <div class="info-item">Tiempo: <span id="timer">00:00</span></div>
-            <div class="info-item">Errores: <span id="errors">0</span></div>
-        </div>
+        // Mostrar lista de gastos
+        datos.forEach(item => {
+          const li = document.createElement("li");
+          li.textContent = `${item.fecha} - ${item.descripcion}: $${item.monto}`;
+          lista.appendChild(li);
 
-        <div class="controls">
-            <button class="btn btn-primary" onclick="newGame()">🎮 Nuevo Juego</button>
-            <button class="btn btn-secondary" onclick="clearGrid()">🧹 Limpiar</button>
-            <button class="btn btn-success" onclick="checkSolution()">✅ Verificar</button>
-            <button class="btn btn-primary" onclick="showHint()">💡 Pista</button>
-        </div>
-
-        <div class="sudoku-grid" id="sudokuGrid">
-            <!-- Se genera con JavaScript -->
-        </div>
-    </div>
-
-    <!-- Modal de completado -->
-    <div class="completion-modal" id="completionModal">
-        <div class="modal-content">
-            <h2>🎉 ¡Felicitaciones!</h2>
-            <div class="stars" id="stars">⭐⭐⭐</div>
-            <p id="completionMessage">¡Has completado el Sudoku!</p>
-            <p id="completionTime">Tiempo: 05:32</p>
-            <p id="completionErrors">Errores: 2</p>
-            <button class="btn btn-primary" onclick="closeModal()">Continuar</button>
-            <button class="btn btn-success" onclick="nextLevel()">Siguiente Nivel</button>
-        </div>
-    </div>
-
-    <script>
-        // Variables del juego
-        let currentLevel = 1;
-        let gameGrid = [];
-        let solutionGrid = [];
-        let initialGrid = [];
-        let timer = 0;
-        let timerInterval = null;
-        let errors = 0;
-        let hintsUsed = 0;
-
-        // Configuración de niveles (número de celdas prefilladas)
-        const levelConfig = {
-            1: { name: "Principiante", prefilled: 45 },
-            2: { name: "Fácil", prefilled: 40 },
-            3: { name: "Intermedio", prefilled: 35 },
-            4: { name: "Difícil", prefilled: 30 },
-            5: { name: "Experto", prefilled: 25 }
-        };
-
-        // Generar grid vacío
-        function createEmptyGrid() {
-            return Array(9).fill().map(() => Array(9).fill(0));
-        }
-
-        // Verificar si un número es válido en una posición
-        function isValidMove(grid, row, col, num) {
-            // Verificar fila
-            for (let x = 0; x < 9; x++) {
-                if (grid[row][x] === num) return false;
-            }
-
-            // Verificar columna
-            for (let x = 0; x < 9; x++) {
-                if (grid[x][col] === num) return false;
-            }
-
-            // Verificar caja 3x3
-            const startRow = row - row % 3;
-            const startCol = col - col % 3;
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    if (grid[i + startRow][j + startCol] === num) return false;
-                }
-            }
-
-            return true;
-        }
-
-        // Generar Sudoku completo usando backtracking
-        function generateCompleteSudoku(grid) {
-            for (let row = 0; row < 9; row++) {
-                for (let col = 0; col < 9; col++) {
-                    if (grid[row][col] === 0) {
-                        const numbers = shuffleArray([1,2,3,4,5,6,7,8,9]);
-                        for (let num of numbers) {
-                            if (isValidMove(grid, row, col, num)) {
-                                grid[row][col] = num;
-                                if (generateCompleteSudoku(grid)) {
-                                    return true;
-                                }
-                                grid[row][col] = 0;
-                            }
-                        }
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-
-        // Mezclar array
-        function shuffleArray(array) {
-            const newArray = [...array];
-            for (let i = newArray.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-            }
-            return newArray;
-        }
-
-        // Generar puzzle removiendo números
-        function generatePuzzle(level) {
-            // Crear solución completa
-            solutionGrid = createEmptyGrid();
-            generateCompleteSudoku(solutionGrid);
-
-            // Crear copia para el puzzle
-            gameGrid = solutionGrid.map(row => [...row]);
-            
-            // Remover números según el nivel
-            const prefilled = levelConfig[level].prefilled;
-            const toRemove = 81 - prefilled;
-            
-            const positions = [];
-            for (let i = 0; i < 9; i++) {
-                for (let j = 0; j < 9; j++) {
-                    positions.push([i, j]);
-                }
-            }
-            
-            const shuffledPositions = shuffleArray(positions);
-            for (let i = 0; i < toRemove; i++) {
-                const [row, col] = shuffledPositions[i];
-                gameGrid[row][col] = 0;
-            }
-
-            initialGrid = gameGrid.map(row => [...row]);
-        }
-
-        // Renderizar grid en HTML
-        function renderGrid() {
-            const gridElement = document.getElementById('sudokuGrid');
-            gridElement.innerHTML = '';
-
-            for (let row = 0; row < 9; row++) {
-                for (let col = 0; col < 9; col++) {
-                    const cell = document.createElement('input');
-                    cell.type = 'number';
-                    cell.min = '1';
-                    cell.max = '9';
-                    cell.className = 'sudoku-cell';
-                    cell.dataset.row = row;
-                    cell.dataset.col = col;
-
-                    // Añadir bordes gruesos para separar cajas 3x3
-                    if (col === 2 || col === 5) {
-                        cell.classList.add('thick-border-right');
-                    }
-                    if (row === 2 || row === 5) {
-                        cell.classList.add('thick-border-bottom');
-                    }
-
-                    if (initialGrid[row][col] !== 0) {
-                        cell.value = initialGrid[row][col];
-                        cell.classList.add('prefilled');
-                        cell.readOnly = true;
-                    } else {
-                        cell.addEventListener('input', handleCellInput);
-                    }
-
-                    gridElement.appendChild(cell);
-                }
-            }
-        }
-
-        // Manejar entrada en celda
-        function handleCellInput(event) {
-            const cell = event.target;
-            const row = parseInt(cell.dataset.row);
-            const col = parseInt(cell.dataset.col);
-            const value = parseInt(cell.value) || 0;
-
-            // Limpiar clases previas
-            cell.classList.remove('error', 'correct');
-
-            if (value === 0) {
-                gameGrid[row][col] = 0;
-                return;
-            }
-
-            // Verificar si el movimiento es válido
-            const tempGrid = gameGrid.map(row => [...row]);
-            tempGrid[row][col] = 0; // Temporalmente vaciar la celda
-            
-            if (isValidMove(tempGrid, row, col, value)) {
-                gameGrid[row][col] = value;
-                cell.classList.add('correct');
-                
-                // Verificar si el juego está completo
-                setTimeout(checkGameCompletion, 100);
-            } else {
-                gameGrid[row][col] = 0;
-                cell.classList.add('error');
-                errors++;
-                updateErrorCount();
-                
-                // Limpiar la celda después de un momento
-                setTimeout(() => {
-                    cell.value = '';
-                    cell.classList.remove('error');
-                }, 1000);
-            }
-        }
-
-        // Verificar si el juego está completo
-        function checkGameCompletion() {
-            for (let row = 0; row < 9; row++) {
-                for (let col = 0; col < 9; col++) {
-                    if (gameGrid[row][col] === 0) {
-                        return false;
-                    }
-                }
-            }
-            
-            // Juego completado
-            gameCompleted();
-            return true;
-        }
-
-        // Juego completado
-        function gameCompleted() {
-            stopTimer();
-            showCompletionModal();
-        }
-
-        // Mostrar modal de completado
-        function showCompletionModal() {
-            const modal = document.getElementById('completionModal');
-            const stars = document.getElementById('stars');
-            const message = document.getElementById('completionMessage');
-            const timeEl = document.getElementById('completionTime');
-            const errorsEl = document.getElementById('completionErrors');
-
-            // Calcular estrellas basadas en errores y tiempo
-            let starCount = 3;
-            if (errors > 3) starCount = 2;
-            if (errors > 6) starCount = 1;
-            if (timer > 600) starCount = Math.max(1, starCount - 1); // Más de 10 minutos
-
-            stars.textContent = '⭐'.repeat(starCount) + '☆'.repeat(3 - starCount);
-            
-            const timeString = formatTime(timer);
-            timeEl.textContent = `Tiempo: ${timeString}`;
-            errorsEl.textContent = `Errores: ${errors}`;
-            
-            if (starCount === 3) {
-                message.textContent = '¡Perfecto! Eres un maestro del Sudoku';
-            } else if (starCount === 2) {
-                message.textContent = '¡Muy bien! Buen trabajo';
-            } else {
-                message.textContent = '¡Completado! Sigue practicando';
-            }
-
-            modal.style.display = 'flex';
-        }
-
-        // Cerrar modal
-        function closeModal() {
-            document.getElementById('completionModal').style.display = 'none';
-        }
-
-        // Siguiente nivel
-        function nextLevel() {
-            closeModal();
-            if (currentLevel < 5) {
-                selectLevel(currentLevel + 1);
-            } else {
-                alert('¡Felicitaciones! Has completado todos los niveles');
-            }
-        }
-
-        // Seleccionar nivel
-        function selectLevel(level) {
-            currentLevel = level;
-            
-            // Actualizar botones
-            document.querySelectorAll('.level-btn').forEach((btn, index) => {
-                btn.classList.toggle('active', index + 1 === level);
-            });
-            
-            // Actualizar información
-            document.getElementById('currentLevel').textContent = `${level} - ${levelConfig[level].name}`;
-            
-            newGame();
-        }
-
-        // Nuevo juego
-        function newGame() {
-            resetGame();
-            generatePuzzle(currentLevel);
-            renderGrid();
-            startTimer();
-        }
-
-        // Resetear juego
-        function resetGame() {
-            stopTimer();
-            timer = 0;
-            errors = 0;
-            hintsUsed = 0;
-            updateTimer();
-            updateErrorCount();
-        }
-
-        // Limpiar grid (solo celdas editables)
-        function clearGrid() {
-            const cells = document.querySelectorAll('.sudoku-cell:not(.prefilled)');
-            cells.forEach(cell => {
-                cell.value = '';
-                cell.classList.remove('error', 'correct');
-                const row = parseInt(cell.dataset.row);
-                const col = parseInt(cell.dataset.col);
-                gameGrid[row][col] = 0;
-            });
-        }
-
-        // Verificar solución
-        function checkSolution() {
-            let correctCells = 0;
-            let totalCells = 0;
-            
-            const cells = document.querySelectorAll('.sudoku-cell');
-            cells.forEach(cell => {
-                const row = parseInt(cell.dataset.row);
-                const col = parseInt(cell.dataset.col);
-                
-                if (!cell.classList.contains('prefilled')) {
-                    totalCells++;
-                    cell.classList.remove('error', 'correct');
-                    
-                    if (parseInt(cell.value) === solutionGrid[row][col]) {
-                        cell.classList.add('correct');
-                        correctCells++;
-                    } else if (cell.value) {
-                        cell.classList.add('error');
-                    }
-                }
-            });
-            
-            const percentage = totalCells > 0 ? Math.round((correctCells / totalCells) * 100) : 0;
-            alert(`Progreso: ${percentage}% correcto (${correctCells}/${totalCells} celdas)`);
-        }
-
-        // Mostrar pista
-        function showHint() {
-            if (hintsUsed >= 3) {
-                alert('Has usado todas las pistas disponibles para este nivel');
-                return;
-            }
-            
-            // Encontrar una celda vacía aleatoria
-            const emptyCells = [];
-            for (let row = 0; row < 9; row++) {
-                for (let col = 0; col < 9; col++) {
-                    if (gameGrid[row][col] === 0 && initialGrid[row][col] === 0) {
-                        emptyCells.push([row, col]);
-                    }
-                }
-            }
-            
-            if (emptyCells.length === 0) return;
-            
-            const randomIndex = Math.floor(Math.random() * emptyCells.length);
-            const [row, col] = emptyCells[randomIndex];
-            
-            // Llenar la celda con el valor correcto
-            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-            cell.value = solutionGrid[row][col];
-            cell.classList.add('prefilled');
-            cell.readOnly = true;
-            gameGrid[row][col] = solutionGrid[row][col];
-            
-            hintsUsed++;
-            
-            setTimeout(checkGameCompletion, 100);
-        }
-
-        // Timer functions
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                timer++;
-                updateTimer();
-            }, 1000);
-        }
-
-        function stopTimer() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-        }
-
-        function updateTimer() {
-            document.getElementById('timer').textContent = formatTime(timer);
-        }
-
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        function updateErrorCount() {
-            document.getElementById('errors').textContent = errors;
-        }
-
-        // Inicializar juego
-        document.addEventListener('DOMContentLoaded', () => {
-            newGame();
+          // Agrupar por mes
+          const mes = item.fecha.slice(0,7); // YYYY-MM
+          meses[mes] = (meses[mes] || 0) + item.monto;
         });
 
-        // Prevenir envío de formulario al presionar Enter
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && e.target.classList.contains('sudoku-cell')) {
-                e.preventDefault();
+        // Crear gráfico
+        new Chart(document.getElementById('gastosChart'), {
+          type: 'bar',
+          data: {
+            labels: Object.keys(meses),
+            datasets: [{
+              label: 'Gastos mensuales',
+              data: Object.values(meses),
+              backgroundColor: 'rgba(54, 162, 235, 0.7)'
+            }]
+          },
+          options: {
+            scales: {
+              y: { beginAtZero: true }
             }
+          }
         });
-    </script>
+      })
+      .catch(err => {
+        console.error("Error cargando data.json:", err);
+      });
+  </script>
 </body>
 </html>
