@@ -539,7 +539,13 @@
             addMessage(sender, text) {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${sender}-message`;
-                messageDiv.innerHTML = text;
+                
+                // Convertir markdown básico a HTML para mejor formato
+                let formattedText = text
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>');
+                
+                messageDiv.innerHTML = formattedText;
                 this.messages.appendChild(messageDiv);
                 this.messages.scrollTop = this.messages.scrollHeight;
             }
