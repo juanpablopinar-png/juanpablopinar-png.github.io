@@ -1,424 +1,577 @@
-import React, { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { Search, TrendingUp, TrendingDown, DollarSign, Calendar, AlertCircle } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultor de Criptomonedas</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
+    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; }
+        .recharts-wrapper { width: 100% !important; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-const CryptoConsultant = () => {
-  const [selectedCrypto, setSelectedCrypto] = useState('BTC');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [timeframe, setTimeframe] = useState('6M');
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } = Recharts;
+        const { Search, TrendingUp, TrendingDown, DollarSign, Calendar, AlertCircle } = LucideReact;
 
-  // Datos históricos simulados basados en la información real obtenida
-  const cryptoData = {
-    BTC: {
-      name: 'Bitcoin',
-      symbol: 'BTC',
-      currentPrice: 109250,
-      change24h: -1.76,
-      marketCap: 2162000000000,
-      volume24h: 45600000000,
-      ath: 124171,
-      athDate: '2025-08-14',
-      description: 'La primera y más popular criptomoneda del mundo.',
-      predictions2025: {
-        min: 103756,
-        max: 128000,
-        avg: 116000
-      },
-      keyEvents: [
-        'Máximo histórico de $124,171 en agosto 2025',
-        'Aprobación de ETFs de Bitcoin',
-        'Elección de Trump impulsa mercado crypto',
-        'Halving de Bitcoin en abril 2024'
-      ],
-      historicalData: [
-        { month: 'Mar 2025', price: 76600, volume: 32000000000 },
-        { month: 'Abr 2025', price: 95000, volume: 38000000000 },
-        { month: 'May 2025', price: 111970, volume: 42000000000 },
-        { month: 'Jun 2025', price: 108000, volume: 40000000000 },
-        { month: 'Jul 2025', price: 123000, volume: 48000000000 },
-        { month: 'Ago 2025', price: 124171, volume: 52000000000 },
-        { month: 'Sep 2025', price: 109250, volume: 45600000000 }
-      ]
-    },
-    ETH: {
-      name: 'Ethereum',
-      symbol: 'ETH',
-      currentPrice: 3794,
-      change24h: -2.77,
-      marketCap: 456000000000,
-      volume24h: 38240000000,
-      ath: 4900,
-      athDate: '2025-08-24',
-      description: 'Plataforma líder para contratos inteligentes y aplicaciones descentralizadas.',
-      predictions2025: {
-        min: 3330,
-        max: 6925,
-        avg: 4500
-      },
-      keyEvents: [
-        'Máximo histórico de $4,900 en agosto 2025',
-        'Upgrade Dencun en marzo 2024',
-        'Aprobación de ETFs de Ethereum',
-        'Próximo upgrade Pectra en Q4 2025'
-      ],
-      historicalData: [
-        { month: 'Mar 2025', price: 3200, volume: 22000000000 },
-        { month: 'Abr 2025', price: 3600, volume: 28000000000 },
-        { month: 'May 2025', price: 4100, volume: 32000000000 },
-        { month: 'Jun 2025', price: 3850, volume: 30000000000 },
-        { month: 'Jul 2025', price: 4400, volume: 35000000000 },
-        { month: 'Ago 2025', price: 4900, volume: 44000000000 },
-        { month: 'Sep 2025', price: 3794, volume: 38240000000 }
-      ]
-    },
-    XRP: {
-      name: 'XRP',
-      symbol: 'XRP',
-      currentPrice: 2.82,
-      change24h: 2.5,
-      marketCap: 165000000000,
-      volume24h: 6100000000,
-      ath: 3.84,
-      athDate: '2018-01-07',
-      description: 'Moneda digital diseñada para pagos globales rápidos y de bajo costo.',
-      predictions2025: {
-        min: 3.08,
-        max: 5.81,
-        avg: 3.51
-      },
-      keyEvents: [
-        'SEC retira demanda en marzo 2025',
-        'Posible aprobación de ETF de XRP',
-        'Integración con instituciones financieras',
-        'Lanzamiento de stablecoin RLUSD'
-      ],
-      historicalData: [
-        { month: 'Mar 2025', price: 0.62, volume: 2800000000 },
-        { month: 'Abr 2025', price: 0.85, volume: 3200000000 },
-        { month: 'May 2025', price: 1.45, volume: 4100000000 },
-        { month: 'Jun 2025', price: 2.10, volume: 5200000000 },
-        { month: 'Jul 2025', price: 2.65, volume: 6800000000 },
-        { month: 'Ago 2025', price: 3.20, volume: 7200000000 },
-        { month: 'Sep 2025', price: 2.82, volume: 6100000000 }
-      ]
-    },
-    SOL: {
-      name: 'Solana',
-      symbol: 'SOL',
-      currentPrice: 161,
-      change24h: -2.0,
-      marketCap: 85000000000,
-      volume24h: 4200000000,
-      ath: 293,
-      athDate: '2025-01-15',
-      description: 'Blockchain de alto rendimiento para aplicaciones descentralizadas.',
-      predictions2025: {
-        min: 170,
-        max: 600,
-        avg: 300
-      },
-      keyEvents: [
-        'Máximo de $293 en enero 2025',
-        'Posible aprobación de ETF de SOL',
-        'Crecimiento en DeFi y NFTs',
-        'Mejoras en escalabilidad'
-      ],
-      historicalData: [
-        { month: 'Mar 2025', price: 100, volume: 2100000000 },
-        { month: 'Abr 2025', price: 125, volume: 2800000000 },
-        { month: 'May 2025', price: 180, volume: 3500000000 },
-        { month: 'Jun 2025', price: 155, volume: 3200000000 },
-        { month: 'Jul 2025', price: 190, volume: 4100000000 },
-        { month: 'Ago 2025', price: 175, volume: 3900000000 },
-        { month: 'Sep 2025', price: 161, volume: 4200000000 }
-      ]
-    },
-    ADA: {
-      name: 'Cardano',
-      symbol: 'ADA',
-      currentPrice: 0.73,
-      change24h: -6.0,
-      marketCap: 23700000000,
-      volume24h: 890000000,
-      ath: 3.09,
-      athDate: '2021-09-02',
-      description: 'Plataforma blockchain enfocada en sostenibilidad y escalabilidad.',
-      predictions2025: {
-        min: 0.55,
-        max: 7.00,
-        avg: 1.50
-      },
-      keyEvents: [
-        'Mención de Trump sobre reserva crypto',
-        'Desarrollo continuo de Hydra',
-        'Crecimiento en DeFi',
-        'Partnerships institucionales'
-      ],
-      historicalData: [
-        { month: 'Mar 2025', price: 0.58, volume: 520000000 },
-        { month: 'Abr 2025', price: 0.64, volume: 580000000 },
-        { month: 'May 2025', price: 0.82, volume: 720000000 },
-        { month: 'Jun 2025', price: 0.75, volume: 650000000 },
-        { month: 'Jul 2025', price: 0.89, volume: 810000000 },
-        { month: 'Ago 2025', price: 0.92, volume: 920000000 },
-        { month: 'Sep 2025', price: 0.73, volume: 890000000 }
-      ]
-    }
-  };
+        const CryptoConsultant = () => {
+            const [selectedCrypto, setSelectedCrypto] = useState('BTC');
+            const [searchTerm, setSearchTerm] = useState('');
+            const [timeframe, setTimeframe] = useState('6M');
 
-  const filteredCryptos = Object.keys(cryptoData).filter(key =>
-    cryptoData[key].name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    key.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+            // Datos históricos simulados basados en la información real obtenida
+            const cryptoData = {
+                BTC: {
+                    name: 'Bitcoin',
+                    symbol: 'BTC',
+                    currentPrice: 109250,
+                    change24h: -1.76,
+                    marketCap: 2162000000000,
+                    volume24h: 45600000000,
+                    ath: 124171,
+                    athDate: '2025-08-14',
+                    description: 'La primera y más popular criptomoneda del mundo.',
+                    predictions2025: {
+                        min: 103756,
+                        max: 128000,
+                        avg: 116000
+                    },
+                    keyEvents: [
+                        'Máximo histórico de $124,171 en agosto 2025',
+                        'Aprobación de ETFs de Bitcoin',
+                        'Elección de Trump impulsa mercado crypto',
+                        'Halving de Bitcoin en abril 2024'
+                    ],
+                    historicalData: [
+                        { month: 'Mar 2025', price: 76600, volume: 32000000000 },
+                        { month: 'Abr 2025', price: 95000, volume: 38000000000 },
+                        { month: 'May 2025', price: 111970, volume: 42000000000 },
+                        { month: 'Jun 2025', price: 108000, volume: 40000000000 },
+                        { month: 'Jul 2025', price: 123000, volume: 48000000000 },
+                        { month: 'Ago 2025', price: 124171, volume: 52000000000 },
+                        { month: 'Sep 2025', price: 109250, volume: 45600000000 }
+                    ]
+                },
+                ETH: {
+                    name: 'Ethereum',
+                    symbol: 'ETH',
+                    currentPrice: 3794,
+                    change24h: -2.77,
+                    marketCap: 456000000000,
+                    volume24h: 38240000000,
+                    ath: 4900,
+                    athDate: '2025-08-24',
+                    description: 'Plataforma líder para contratos inteligentes y aplicaciones descentralizadas.',
+                    predictions2025: {
+                        min: 3330,
+                        max: 6925,
+                        avg: 4500
+                    },
+                    keyEvents: [
+                        'Máximo histórico de $4,900 en agosto 2025',
+                        'Upgrade Dencun en marzo 2024',
+                        'Aprobación de ETFs de Ethereum',
+                        'Próximo upgrade Pectra en Q4 2025'
+                    ],
+                    historicalData: [
+                        { month: 'Mar 2025', price: 3200, volume: 22000000000 },
+                        { month: 'Abr 2025', price: 3600, volume: 28000000000 },
+                        { month: 'May 2025', price: 4100, volume: 32000000000 },
+                        { month: 'Jun 2025', price: 3850, volume: 30000000000 },
+                        { month: 'Jul 2025', price: 4400, volume: 35000000000 },
+                        { month: 'Ago 2025', price: 4900, volume: 44000000000 },
+                        { month: 'Sep 2025', price: 3794, volume: 38240000000 }
+                    ]
+                },
+                XRP: {
+                    name: 'XRP',
+                    symbol: 'XRP',
+                    currentPrice: 2.82,
+                    change24h: 2.5,
+                    marketCap: 165000000000,
+                    volume24h: 6100000000,
+                    ath: 3.84,
+                    athDate: '2018-01-07',
+                    description: 'Moneda digital diseñada para pagos globales rápidos y de bajo costo.',
+                    predictions2025: {
+                        min: 3.08,
+                        max: 5.81,
+                        avg: 3.51
+                    },
+                    keyEvents: [
+                        'SEC retira demanda en marzo 2025',
+                        'Posible aprobación de ETF de XRP',
+                        'Integración con instituciones financieras',
+                        'Lanzamiento de stablecoin RLUSD'
+                    ],
+                    historicalData: [
+                        { month: 'Mar 2025', price: 0.62, volume: 2800000000 },
+                        { month: 'Abr 2025', price: 0.85, volume: 3200000000 },
+                        { month: 'May 2025', price: 1.45, volume: 4100000000 },
+                        { month: 'Jun 2025', price: 2.10, volume: 5200000000 },
+                        { month: 'Jul 2025', price: 2.65, volume: 6800000000 },
+                        { month: 'Ago 2025', price: 3.20, volume: 7200000000 },
+                        { month: 'Sep 2025', price: 2.82, volume: 6100000000 }
+                    ]
+                },
+                SOL: {
+                    name: 'Solana',
+                    symbol: 'SOL',
+                    currentPrice: 161,
+                    change24h: -2.0,
+                    marketCap: 85000000000,
+                    volume24h: 4200000000,
+                    ath: 293,
+                    athDate: '2025-01-15',
+                    description: 'Blockchain de alto rendimiento para aplicaciones descentralizadas.',
+                    predictions2025: {
+                        min: 170,
+                        max: 600,
+                        avg: 300
+                    },
+                    keyEvents: [
+                        'Máximo de $293 en enero 2025',
+                        'Posible aprobación de ETF de SOL',
+                        'Crecimiento en DeFi y NFTs',
+                        'Mejoras en escalabilidad'
+                    ],
+                    historicalData: [
+                        { month: 'Mar 2025', price: 100, volume: 2100000000 },
+                        { month: 'Abr 2025', price: 125, volume: 2800000000 },
+                        { month: 'May 2025', price: 180, volume: 3500000000 },
+                        { month: 'Jun 2025', price: 155, volume: 3200000000 },
+                        { month: 'Jul 2025', price: 190, volume: 4100000000 },
+                        { month: 'Ago 2025', price: 175, volume: 3900000000 },
+                        { month: 'Sep 2025', price: 161, volume: 4200000000 }
+                    ]
+                },
+                ADA: {
+                    name: 'Cardano',
+                    symbol: 'ADA',
+                    currentPrice: 0.73,
+                    change24h: -6.0,
+                    marketCap: 23700000000,
+                    volume24h: 890000000,
+                    ath: 3.09,
+                    athDate: '2021-09-02',
+                    description: 'Plataforma blockchain enfocada en sostenibilidad y escalabilidad.',
+                    predictions2025: {
+                        min: 0.55,
+                        max: 7.00,
+                        avg: 1.50
+                    },
+                    keyEvents: [
+                        'Mención de Trump sobre reserva crypto',
+                        'Desarrollo continuo de Hydra',
+                        'Crecimiento en DeFi',
+                        'Partnerships institucionales'
+                    ],
+                    historicalData: [
+                        { month: 'Mar 2025', price: 0.58, volume: 520000000 },
+                        { month: 'Abr 2025', price: 0.64, volume: 580000000 },
+                        { month: 'May 2025', price: 0.82, volume: 720000000 },
+                        { month: 'Jun 2025', price: 0.75, volume: 650000000 },
+                        { month: 'Jul 2025', price: 0.89, volume: 810000000 },
+                        { month: 'Ago 2025', price: 0.92, volume: 920000000 },
+                        { month: 'Sep 2025', price: 0.73, volume: 890000000 }
+                    ]
+                }
+            };
 
-  const currentCrypto = cryptoData[selectedCrypto];
-
-  const formatPrice = (price) => {
-    if (price >= 1000) {
-      return new Intl.NumberFormat('es-ES', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-      }).format(price);
-    }
-    return new Intl.NumberFormat('es-ES', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 4
-    }).format(price);
-  };
-
-  const formatMarketCap = (marketCap) => {
-    if (marketCap >= 1e12) {
-      return `$${(marketCap / 1e12).toFixed(2)}T`;
-    } else if (marketCap >= 1e9) {
-      return `$${(marketCap / 1e9).toFixed(2)}B`;
-    } else {
-      return `$${(marketCap / 1e6).toFixed(2)}M`;
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-            Consultor de Criptomonedas
-          </h1>
-          <p className="text-slate-400 text-lg">Análisis de precios de los últimos 6 meses (Marzo - Septiembre 2025)</p>
-          <div className="flex items-center gap-2 mt-2 text-amber-400">
-            <AlertCircle size={16} />
-            <span className="text-sm">Datos actualizados al 2 de septiembre de 2025</span>
-          </div>
-        </div>
-
-        {/* Search and Filter */}
-        <div className="mb-6 flex flex-wrap gap-4">
-          <div className="relative flex-1 min-w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
-            <input
-              type="text"
-              placeholder="Buscar criptomoneda..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <select
-            value={timeframe}
-            onChange={(e) => setTimeframe(e.target.value)}
-            className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="6M">Últimos 6 meses</option>
-            <option value="1Y">1 año</option>
-            <option value="ALL">Todo el tiempo</option>
-          </select>
-        </div>
-
-        {/* Crypto Selection */}
-        <div className="mb-6 grid grid-cols-2 md:grid-cols-5 gap-3">
-          {filteredCryptos.map(crypto => {
-            const data = cryptoData[crypto];
-            return (
-              <button
-                key={crypto}
-                onClick={() => setSelectedCrypto(crypto)}
-                className={`p-4 rounded-lg border transition-all ${
-                  selectedCrypto === crypto
-                    ? 'bg-blue-600 border-blue-500'
-                    : 'bg-slate-800 border-slate-700 hover:bg-slate-700'
-                }`}
-              >
-                <div className="font-bold text-lg">{crypto}</div>
-                <div className="text-sm text-slate-400">{data.name}</div>
-                <div className={`text-sm flex items-center gap-1 ${
-                  data.change24h >= 0 ? 'text-green-400' : 'text-red-400'
-                }`}>
-                  {data.change24h >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                  {Math.abs(data.change24h).toFixed(2)}%
-                </div>
-              </button>
+            const filteredCryptos = Object.keys(cryptoData).filter(key =>
+                cryptoData[key].name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                key.toLowerCase().includes(searchTerm.toLowerCase())
             );
-          })}
-        </div>
 
-        {/* Main Content */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Price Info */}
-          <div className="lg:col-span-1">
-            <div className="bg-slate-800 rounded-xl p-6 mb-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <DollarSign className="text-yellow-500" />
-                {currentCrypto.name} ({currentCrypto.symbol})
-              </h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <div className="text-3xl font-bold text-green-400">
-                    {formatPrice(currentCrypto.currentPrice)}
-                  </div>
-                  <div className={`flex items-center gap-2 ${
-                    currentCrypto.change24h >= 0 ? 'text-green-400' : 'text-red-400'
-                  }`}>
-                    {currentCrypto.change24h >= 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
-                    <span className="text-lg font-semibold">
-                      {currentCrypto.change24h >= 0 ? '+' : ''}{currentCrypto.change24h.toFixed(2)}%
-                    </span>
-                    <span className="text-slate-400">24h</span>
-                  </div>
-                </div>
+            const currentCrypto = cryptoData[selectedCrypto];
 
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <div className="text-slate-400">Cap. Mercado</div>
-                    <div className="font-semibold">{formatMarketCap(currentCrypto.marketCap)}</div>
-                  </div>
-                  <div>
-                    <div className="text-slate-400">Volumen 24h</div>
-                    <div className="font-semibold">{formatMarketCap(currentCrypto.volume24h)}</div>
-                  </div>
-                  <div>
-                    <div className="text-slate-400">Máximo histórico</div>
-                    <div className="font-semibold">{formatPrice(currentCrypto.ath)}</div>
-                  </div>
-                  <div>
-                    <div className="text-slate-400">Fecha ATH</div>
-                    <div className="font-semibold">{currentCrypto.athDate}</div>
-                  </div>
-                </div>
+            const formatPrice = (price) => {
+                if (price >= 1000) {
+                    return new Intl.NumberFormat('es-ES', {
+                        style: 'currency',
+                        currency: 'USD',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                    }).format(price);
+                }
+                return new Intl.NumberFormat('es-ES', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 4
+                }).format(price);
+            };
 
-                <div>
-                  <div className="text-slate-400 mb-2">Descripción</div>
-                  <p className="text-sm">{currentCrypto.description}</p>
-                </div>
-              </div>
-            </div>
+            const formatMarketCap = (marketCap) => {
+                if (marketCap >= 1e12) {
+                    return `$${(marketCap / 1e12).toFixed(2)}T`;
+                } else if (marketCap >= 1e9) {
+                    return `$${(marketCap / 1e9).toFixed(2)}B`;
+                } else {
+                    return `$${(marketCap / 1e6).toFixed(2)}M`;
+                }
+            };
 
-            {/* Predictions */}
-            <div className="bg-slate-800 rounded-xl p-6">
-              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Calendar className="text-purple-500" />
-                Predicciones 2025
-              </h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Mínimo</span>
-                  <span className="font-semibold text-red-400">
-                    {formatPrice(currentCrypto.predictions2025.min)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Promedio</span>
-                  <span className="font-semibold text-yellow-400">
-                    {formatPrice(currentCrypto.predictions2025.avg)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Máximo</span>
-                  <span className="font-semibold text-green-400">
-                    {formatPrice(currentCrypto.predictions2025.max)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+            return React.createElement('div', {
+                className: "min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6"
+            }, 
+                React.createElement('div', {
+                    className: "max-w-7xl mx-auto"
+                },
+                    // Header
+                    React.createElement('div', {
+                        className: "mb-8"
+                    },
+                        React.createElement('h1', {
+                            className: "text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent"
+                        }, 'Consultor de Criptomonedas'),
+                        React.createElement('p', {
+                            className: "text-slate-400 text-lg"
+                        }, 'Análisis de precios de los últimos 6 meses (Marzo - Septiembre 2025)'),
+                        React.createElement('div', {
+                            className: "flex items-center gap-2 mt-2 text-amber-400"
+                        },
+                            React.createElement(AlertCircle, { size: 16 }),
+                            React.createElement('span', {
+                                className: "text-sm"
+                            }, 'Datos actualizados al 2 de septiembre de 2025')
+                        )
+                    ),
 
-          {/* Charts */}
-          <div className="lg:col-span-2">
-            <div className="bg-slate-800 rounded-xl p-6 mb-6">
-              <h3 className="text-xl font-bold mb-4">Evolución de Precios - Últimos 6 Meses</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={currentCrypto.historicalData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="month" stroke="#9CA3AF" />
-                  <YAxis stroke="#9CA3AF" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#1F2937',
-                      border: '1px solid #374151',
-                      borderRadius: '8px'
-                    }}
-                    formatter={(value) => [formatPrice(value), 'Precio']}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="price"
-                    stroke="#3B82F6"
-                    strokeWidth={3}
-                    dot={{ fill: '#3B82F6', strokeWidth: 2, r: 6 }}
-                    activeDot={{ r: 8 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+                    // Search and Filter
+                    React.createElement('div', {
+                        className: "mb-6 flex flex-wrap gap-4"
+                    },
+                        React.createElement('div', {
+                            className: "relative flex-1 min-w-64"
+                        },
+                            React.createElement(Search, {
+                                className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400",
+                                size: 20
+                            }),
+                            React.createElement('input', {
+                                type: "text",
+                                placeholder: "Buscar criptomoneda...",
+                                value: searchTerm,
+                                onChange: (e) => setSearchTerm(e.target.value),
+                                className: "w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            })
+                        ),
+                        React.createElement('select', {
+                            value: timeframe,
+                            onChange: (e) => setTimeframe(e.target.value),
+                            className: "px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        },
+                            React.createElement('option', { value: "6M" }, 'Últimos 6 meses'),
+                            React.createElement('option', { value: "1Y" }, '1 año'),
+                            React.createElement('option', { value: "ALL" }, 'Todo el tiempo')
+                        )
+                    ),
 
-            <div className="bg-slate-800 rounded-xl p-6 mb-6">
-              <h3 className="text-xl font-bold mb-4">Volumen de Trading - Últimos 6 Meses</h3>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={currentCrypto.historicalData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="month" stroke="#9CA3AF" />
-                  <YAxis stroke="#9CA3AF" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#1F2937',
-                      border: '1px solid #374151',
-                      borderRadius: '8px'
-                    }}
-                    formatter={(value) => [formatMarketCap(value), 'Volumen']}
-                  />
-                  <Bar dataKey="volume" fill="#10B981" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+                    // Crypto Selection
+                    React.createElement('div', {
+                        className: "mb-6 grid grid-cols-2 md:grid-cols-5 gap-3"
+                    },
+                        filteredCryptos.map(crypto => {
+                            const data = cryptoData[crypto];
+                            return React.createElement('button', {
+                                key: crypto,
+                                onClick: () => setSelectedCrypto(crypto),
+                                className: `p-4 rounded-lg border transition-all ${selectedCrypto === crypto ? 'bg-blue-600 border-blue-500' : 'bg-slate-800 border-slate-700 hover:bg-slate-700'}`
+                            },
+                                React.createElement('div', {
+                                    className: "font-bold text-lg"
+                                }, crypto),
+                                React.createElement('div', {
+                                    className: "text-sm text-slate-400"
+                                }, data.name),
+                                React.createElement('div', {
+                                    className: `text-sm flex items-center gap-1 ${data.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`
+                                },
+                                    data.change24h >= 0 ? React.createElement(TrendingUp, { size: 14 }) : React.createElement(TrendingDown, { size: 14 }),
+                                    `${Math.abs(data.change24h).toFixed(2)}%`
+                                )
+                            );
+                        })
+                    ),
 
-            {/* Key Events */}
-            <div className="bg-slate-800 rounded-xl p-6">
-              <h3 className="text-xl font-bold mb-4">Eventos Clave</h3>
-              <div className="space-y-3">
-                {currentCrypto.keyEvents.map((event, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <span className="text-sm">{event}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+                    // Main Content
+                    React.createElement('div', {
+                        className: "grid lg:grid-cols-3 gap-6"
+                    },
+                        // Price Info
+                        React.createElement('div', {
+                            className: "lg:col-span-1"
+                        },
+                            React.createElement('div', {
+                                className: "bg-slate-800 rounded-xl p-6 mb-6"
+                            },
+                                React.createElement('h2', {
+                                    className: "text-2xl font-bold mb-4 flex items-center gap-2"
+                                },
+                                    React.createElement(DollarSign, { className: "text-yellow-500" }),
+                                    `${currentCrypto.name} (${currentCrypto.symbol})`
+                                ),
+                                
+                                React.createElement('div', {
+                                    className: "space-y-4"
+                                },
+                                    React.createElement('div', {},
+                                        React.createElement('div', {
+                                            className: "text-3xl font-bold text-green-400"
+                                        }, formatPrice(currentCrypto.currentPrice)),
+                                        React.createElement('div', {
+                                            className: `flex items-center gap-2 ${currentCrypto.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`
+                                        },
+                                            currentCrypto.change24h >= 0 ? React.createElement(TrendingUp, { size: 20 }) : React.createElement(TrendingDown, { size: 20 }),
+                                            React.createElement('span', {
+                                                className: "text-lg font-semibold"
+                                            }, `${currentCrypto.change24h >= 0 ? '+' : ''}${currentCrypto.change24h.toFixed(2)}%`),
+                                            React.createElement('span', {
+                                                className: "text-slate-400"
+                                            }, '24h')
+                                        )
+                                    ),
 
-        {/* Footer */}
-        <div className="mt-8 text-center text-sm text-slate-500">
-          <p>⚠️ Esta información es solo para fines educativos. No constituye asesoramiento financiero.</p>
-          <p>Los precios de las criptomonedas son altamente volátiles. Investiga antes de tomar decisiones de inversión.</p>
-        </div>
-      </div>
-    </div>
-  );
-};
+                                    React.createElement('div', {
+                                        className: "grid grid-cols-2 gap-4 text-sm"
+                                    },
+                                        React.createElement('div', {},
+                                            React.createElement('div', {
+                                                className: "text-slate-400"
+                                            }, 'Cap. Mercado'),
+                                            React.createElement('div', {
+                                                className: "font-semibold"
+                                            }, formatMarketCap(currentCrypto.marketCap))
+                                        ),
+                                        React.createElement('div', {},
+                                            React.createElement('div', {
+                                                className: "text-slate-400"
+                                            }, 'Volumen 24h'),
+                                            React.createElement('div', {
+                                                className: "font-semibold"
+                                            }, formatMarketCap(currentCrypto.volume24h))
+                                        ),
+                                        React.createElement('div', {},
+                                            React.createElement('div', {
+                                                className: "text-slate-400"
+                                            }, 'Máximo histórico'),
+                                            React.createElement('div', {
+                                                className: "font-semibold"
+                                            }, formatPrice(currentCrypto.ath))
+                                        ),
+                                        React.createElement('div', {},
+                                            React.createElement('div', {
+                                                className: "text-slate-400"
+                                            }, 'Fecha ATH'),
+                                            React.createElement('div', {
+                                                className: "font-semibold"
+                                            }, currentCrypto.athDate)
+                                        )
+                                    ),
 
-export default CryptoConsultant;
+                                    React.createElement('div', {},
+                                        React.createElement('div', {
+                                            className: "text-slate-400 mb-2"
+                                        }, 'Descripción'),
+                                        React.createElement('p', {
+                                            className: "text-sm"
+                                        }, currentCrypto.description)
+                                    )
+                                )
+                            ),
+
+                            // Predictions
+                            React.createElement('div', {
+                                className: "bg-slate-800 rounded-xl p-6"
+                            },
+                                React.createElement('h3', {
+                                    className: "text-xl font-bold mb-4 flex items-center gap-2"
+                                },
+                                    React.createElement(Calendar, { className: "text-purple-500" }),
+                                    'Predicciones 2025'
+                                ),
+                                React.createElement('div', {
+                                    className: "space-y-3"
+                                },
+                                    React.createElement('div', {
+                                        className: "flex justify-between"
+                                    },
+                                        React.createElement('span', {
+                                            className: "text-slate-400"
+                                        }, 'Mínimo'),
+                                        React.createElement('span', {
+                                            className: "font-semibold text-red-400"
+                                        }, formatPrice(currentCrypto.predictions2025.min))
+                                    ),
+                                    React.createElement('div', {
+                                        className: "flex justify-between"
+                                    },
+                                        React.createElement('span', {
+                                            className: "text-slate-400"
+                                        }, 'Promedio'),
+                                        React.createElement('span', {
+                                            className: "font-semibold text-yellow-400"
+                                        }, formatPrice(currentCrypto.predictions2025.avg))
+                                    ),
+                                    React.createElement('div', {
+                                        className: "flex justify-between"
+                                    },
+                                        React.createElement('span', {
+                                            className: "text-slate-400"
+                                        }, 'Máximo'),
+                                        React.createElement('span', {
+                                            className: "font-semibold text-green-400"
+                                        }, formatPrice(currentCrypto.predictions2025.max))
+                                    )
+                                )
+                            )
+                        ),
+
+                        // Charts and Events
+                        React.createElement('div', {
+                            className: "lg:col-span-2"
+                        },
+                            React.createElement('div', {
+                                className: "bg-slate-800 rounded-xl p-6 mb-6"
+                            },
+                                React.createElement('h3', {
+                                    className: "text-xl font-bold mb-4"
+                                }, 'Evolución de Precios - Últimos 6 Meses'),
+                                React.createElement('div', {
+                                    style: { width: '100%', height: '300px' }
+                                },
+                                    React.createElement(ResponsiveContainer, {
+                                        width: "100%",
+                                        height: "100%"
+                                    },
+                                        React.createElement(LineChart, {
+                                            data: currentCrypto.historicalData
+                                        },
+                                            React.createElement(CartesianGrid, {
+                                                strokeDasharray: "3 3",
+                                                stroke: "#374151"
+                                            }),
+                                            React.createElement(XAxis, {
+                                                dataKey: "month",
+                                                stroke: "#9CA3AF"
+                                            }),
+                                            React.createElement(YAxis, {
+                                                stroke: "#9CA3AF"
+                                            }),
+                                            React.createElement(Tooltip, {
+                                                contentStyle: {
+                                                    backgroundColor: '#1F2937',
+                                                    border: '1px solid #374151',
+                                                    borderRadius: '8px'
+                                                }
+                                            }),
+                                            React.createElement(Legend),
+                                            React.createElement(Line, {
+                                                type: "monotone",
+                                                dataKey: "price",
+                                                stroke: "#3B82F6",
+                                                strokeWidth: 3,
+                                                dot: { fill: '#3B82F6', strokeWidth: 2, r: 6 },
+                                                activeDot: { r: 8 }
+                                            })
+                                        )
+                                    )
+                                )
+                            ),
+
+                            React.createElement('div', {
+                                className: "bg-slate-800 rounded-xl p-6 mb-6"
+                            },
+                                React.createElement('h3', {
+                                    className: "text-xl font-bold mb-4"
+                                }, 'Volumen de Trading - Últimos 6 Meses'),
+                                React.createElement('div', {
+                                    style: { width: '100%', height: '250px' }
+                                },
+                                    React.createElement(ResponsiveContainer, {
+                                        width: "100%",
+                                        height: "100%"
+                                    },
+                                        React.createElement(BarChart, {
+                                            data: currentCrypto.historicalData
+                                        },
+                                            React.createElement(CartesianGrid, {
+                                                strokeDasharray: "3 3",
+                                                stroke: "#374151"
+                                            }),
+                                            React.createElement(XAxis, {
+                                                dataKey: "month",
+                                                stroke: "#9CA3AF"
+                                            }),
+                                            React.createElement(YAxis, {
+                                                stroke: "#9CA3AF"
+                                            }),
+                                            React.createElement(Tooltip, {
+                                                contentStyle: {
+                                                    backgroundColor: '#1F2937',
+                                                    border: '1px solid #374151',
+                                                    borderRadius: '8px'
+                                                }
+                                            }),
+                                            React.createElement(Bar, {
+                                                dataKey: "volume",
+                                                fill: "#10B981"
+                                            })
+                                        )
+                                    )
+                                )
+                            ),
+
+                            // Key Events
+                            React.createElement('div', {
+                                className: "bg-slate-800 rounded-xl p-6"
+                            },
+                                React.createElement('h3', {
+                                    className: "text-xl font-bold mb-4"
+                                }, 'Eventos Clave'),
+                                React.createElement('div', {
+                                    className: "space-y-3"
+                                },
+                                    currentCrypto.keyEvents.map((event, index) =>
+                                        React.createElement('div', {
+                                            key: index,
+                                            className: "flex items-start gap-3"
+                                        },
+                                            React.createElement('div', {
+                                                className: "w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"
+                                            }),
+                                            React.createElement('span', {
+                                                className: "text-sm"
+                                            }, event)
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    ),
+
+                    // Footer
+                    React.createElement('div', {
+                        className: "mt-8 text-center text-sm text-slate-500"
+                    },
+                        React.createElement('p', {}, '⚠️ Esta información es solo para fines educativos. No constituye asesoramiento financiero.'),
+                        React.createElement('p', {}, 'Los precios de las criptomonedas son altamente volátiles. Investiga antes de tomar decisiones de inversión.')
+                    )
+                )
+            );
+        };
+
+        ReactDOM.render(React.createElement(CryptoConsultant), document.getElementById('root'));
+    </script>
+</body>
+</html>
