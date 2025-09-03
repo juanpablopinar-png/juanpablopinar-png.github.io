@@ -1,416 +1,612 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
-
-const MultiCryptoPredictionModel = () => {
-  const cryptoData = {
-    BTC: { symbol: 'BTC', name: 'Bitcoin', price: 108963, marketCap: 2160, volume: 50200, change24h: 0.10 },
-    ETH: { symbol: 'ETH', name: 'Ethereum', price: 4472, marketCap: 523, volume: 35800, change24h: 2.53 },
-    BNB: { symbol: 'BNB', name: 'BNB', price: 866, marketCap: 128, volume: 1800, change24h: 0.98 },
-    XRP: { symbol: 'XRP', name: 'XRP', price: 2.815, marketCap: 159, volume: 4500, change24h: 0.11 },
-    SOL: { symbol: 'SOL', name: 'Solana', price: 205, marketCap: 95, volume: 3200, change24h: 2.35 },
-    DOGE: { symbol: 'DOGE', name: 'Dogecoin', price: 0.218, marketCap: 32, volume: 2100, change24h: 1.20 },
-    ADA: { symbol: 'ADA', name: 'Cardano', price: 0.824, marketCap: 29, volume: 890, change24h: 0.44 },
-    TRX: { symbol: 'TRX', name: 'TRON', price: 0.343, marketCap: 29, volume: 1200, change24h: 1.43 }
-  };
-
-  const [selectedCrypto, setSelectedCrypto] = useState('BTC');
-  const [selectedModel, setSelectedModel] = useState('ensemble');
-  const [timeframe, setTimeframe] = useState(30);
-  const [loading, setLoading] = useState(false);
-  
-  const modelInfo = useMemo(() => ({
-    lstm: { name: 'LSTM Deep Learning', accuracy: '73%', color: '#8884d8' },
-    arima: { name: 'ARIMA', accuracy: '68%', color: '#82ca9d' },
-    transformer: { name: 'Transformer', accuracy: '76%', color: '#ffc658' },
-    ensemble: { name: 'Modelo Ensemble', accuracy: '81%', color: '#ff7c7c' }
-  }), []);
-
-  const volatilityMap = useMemo(() => ({
-    'BTC': 0.05, 'ETH': 0.06, 'BNB': 0.07, 'XRP': 0.09, 'SOL': 0.10,
-    'DOGE': 0.15, 'ADA': 0.08, 'TRX': 0.09
-  }), []);
-  
-  const generateHistoricalData = (crypto, days = 30) => {
-    const currentPrice = cryptoData[crypto]?.price || 0;
-    if (!currentPrice) return [];
-    
-    const data = [];
-    const volatility = volatilityMap[crypto] || 0.08;
-    
-    for (let i = days; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      
-      const trend = -0.001 * i;
-      const randomFactor = (Math.random() - 0.5) * volatility;
-      const seasonality = Math.sin(i * 0.2) * 0.02;
-      
-      const priceMultiplier = 1 + trend + randomFactor + seasonality;
-      const price = currentPrice * priceMultiplier;
-      
-      data.push({
-        date: date.toISOString().split('T')[0],
-        price: Math.max(price, currentPrice * 0.7),
-        type: 'historical'
-      });
-    }
-    
-    return data;
-  };
-
-  const generateAdvancedPredictions = (crypto, model, days) => {
-    const currentPrice = cryptoData[crypto]?.price || 0;
-    if (!currentPrice) return [];
-    
-    const predictions = [];
-    const baseVolatility = volatilityMap[crypto] || 0.08;
-    
-    for (let i = 1; i <= days; i++) {
-      const date = new Date();
-      date.setDate(date.getDate() + i);
-      
-      const decayFactor = Math.max(0.3, 1 - (i * 0.02));
-      let price;
-      
-      switch (model) {
-        case 'lstm':
-          price = currentPrice * (1 + 
-            Math.sin(i * 0.3) * baseVolatility * 0.8 + 
-            (Math.random() - 0.5) * baseVolatility * decayFactor
-          );
-          break;
-        case 'arima':
-          const trend = crypto === 'BTC' ? 0.0008 : crypto === 'ETH' ? 0.0012 : 0.0005;
-          price = currentPrice * (1 + 
-            trend * i + 
-            Math.sin(i * 0.4) * baseVolatility * 0.5 +
-            (Math.random() - 0.5) * baseVolatility * decayFactor * 0.8
-          );
-          break;
-        case 'transformer':
-          const attention = Math.exp(-i * 0.1);
-          price = currentPrice * (1 + 
-            attention * Math.sin(i * 0.25) * baseVolatility +
-            (Math.random() - 0.5) * baseVolatility * decayFactor
-          );
-          break;
-        default: // ensemble
-          const lstm = currentPrice * (1 + Math.sin(i * 0.3) * baseVolatility * 0.8 + (Math.random() - 0.5) * baseVolatility * decayFactor);
-          const arima = currentPrice * (1 + 0.0008 * i + Math.sin(i * 0.4) * baseVolatility * 0.5);
-          const transformer = currentPrice * (1 + Math.exp(-i * 0.1) * Math.sin(i * 0.25) * baseVolatility);
-          price = (lstm * 0.4 + arima * 0.35 + transformer * 0.25);
-      }
-      
-      const minPrice = currentPrice * 0.5;
-      const maxPrice = currentPrice * 2.0;
-      price = Math.max(minPrice, Math.min(maxPrice, price));
-      
-      predictions.push({
-        date: date.toISOString().split('T')[0],
-        price: price,
-        type: 'prediction',
-        upperBound: price * (1 + baseVolatility * decayFactor),
-        lowerBound: price * (1 - baseVolatility * decayFactor)
-      });
-    }
-    
-    return predictions;
-  };
-
-  const [historicalData, setHistoricalData] = useState([]);
-  const [predictions, setPredictions] = useState([]);
-
-  useEffect(() => {
-    setLoading(true);
-    try {
-      const historical = generateHistoricalData(selectedCrypto);
-      const predicted = generateAdvancedPredictions(selectedCrypto, selectedModel, timeframe);
-      setHistoricalData(historical);
-      setPredictions(predicted);
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedCrypto, selectedModel, timeframe, volatilityMap]);
-
-  const allData = useMemo(() => [...historicalData, ...predictions], [historicalData, predictions]);
-  
-  const portfolioData = useMemo(() => {
-    return Object.entries(cryptoData).slice(0, 6).map(([symbol, data]) => ({
-      name: data.name,
-      value: data.marketCap,
-      symbol: symbol
-    }));
-  }, []);
-
-  const formatPrice = (price) => {
-    if (price >= 1000) return `$${(price / 1000).toFixed(0)}K`;
-    if (price >= 1) return `$${price.toFixed(2)}`;
-    return `$${price.toFixed(6)}`;
-  };
-
-  const getPredictionChange = () => {
-    if (predictions.length === 0 || !cryptoData[selectedCrypto]) return 0;
-    const finalPrice = predictions[predictions.length - 1]?.price;
-    const currentPrice = cryptoData[selectedCrypto].price;
-    return ((finalPrice / currentPrice - 1) * 100);
-  };
-
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
-
-  return (
-    <div className="w-full max-w-6xl mx-auto p-4 bg-white rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
-        🚀 Predicción Crypto AI - Multi Modelo
-      </h1>
-
-      {/* Controles */}
-      <div className="grid md:grid-cols-3 gap-4 mb-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Criptomoneda:</label>
-          <select 
-            value={selectedCrypto} 
-            onChange={(e) => setSelectedCrypto(e.target.value)}
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-            disabled={loading}
-          >
-            {Object.entries(cryptoData).map(([symbol, data]) => (
-              <option key={symbol} value={symbol}>
-                {data.name} ({symbol}) - {formatPrice(data.price)}
-              </option>
-            ))}
-          </select>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Trading Analyzer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1em;
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .control-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 150px;
+        }
+        
+        .control-group label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        select, button {
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .positive { color: #22c55e; }
+        .negative { color: #ef4444; }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-container h3 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ef4444;
+        }
+        
+        @media (max-width: 768px) {
+            .control-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Crypto Trading Analyzer</h1>
+            <p>Análisis en tiempo real de las principales criptomonedas</p>
         </div>
         
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Modelo de IA:</label>
-          <select 
-            value={selectedModel} 
-            onChange={(e) => setSelectedModel(e.target.value)}
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-            disabled={loading}
-          >
-            <option value="ensemble">🏆 Ensemble (Recomendado)</option>
-            <option value="lstm">🧠 LSTM Deep Learning</option>
-            <option value="transformer">⚡ Transformer</option>
-            <option value="arima">📈 ARIMA</option>
-          </select>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Período:</label>
-          <select 
-            value={timeframe} 
-            onChange={(e) => setTimeframe(parseInt(e.target.value))}
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-            disabled={loading}
-          >
-            <option value={7}>7 días</option>
-            <option value={30}>30 días</option>
-            <option value={60}>60 días</option>
-            <option value={90}>90 días</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Info del crypto actual */}
-      <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <h3 className="text-lg font-semibold mb-2">
-              {modelInfo[selectedModel].name}
-            </h3>
-            <p className="text-sm text-gray-600">
-              Precisión histórica: <span className="font-semibold text-green-600">{modelInfo[selectedModel].accuracy}</span>
-            </p>
-          </div>
-          
-          <div className="bg-white p-3 rounded border">
-            <h4 className="font-semibold mb-2">
-              {cryptoData[selectedCrypto]?.name} ({selectedCrypto})
-            </h4>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>
-                <span className="text-gray-600">Precio:</span>
-                <div className="font-bold text-lg text-blue-600">
-                  {formatPrice(cryptoData[selectedCrypto]?.price)}
+        <div class="controls">
+            <div class="control-row">
+                <div class="control-group">
+                    <label for="cryptoSelect">Criptomoneda:</label>
+                    <select id="cryptoSelect">
+                        <option value="bitcoin">Bitcoin (BTC)</option>
+                        <option value="ethereum">Ethereum (ETH)</option>
+                        <option value="binancecoin">Binance Coin (BNB)</option>
+                        <option value="cardano">Cardano (ADA)</option>
+                        <option value="solana">Solana (SOL)</option>
+                        <option value="polkadot">Polkadot (DOT)</option>
+                        <option value="dogecoin">Dogecoin (DOGE)</option>
+                        <option value="avalanche-2">Avalanche (AVAX)</option>
+                    </select>
                 </div>
-              </div>
-              <div>
-                <span className="text-gray-600">Cambio 24h:</span>
-                <div className={`font-bold text-lg ${
-                  cryptoData[selectedCrypto]?.change24h >= 0 ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {cryptoData[selectedCrypto]?.change24h >= 0 ? '+' : ''}
-                  {cryptoData[selectedCrypto]?.change24h.toFixed(2)}%
+                
+                <div class="control-group">
+                    <label for="timeRange">Período:</label>
+                    <select id="timeRange">
+                        <option value="1">1 Día</option>
+                        <option value="7" selected>7 Días</option>
+                        <option value="30">30 Días</option>
+                        <option value="90">90 Días</option>
+                    </select>
                 </div>
-              </div>
+                
+                <div class="control-group">
+                    <label for="currency">Moneda:</label>
+                    <select id="currency">
+                        <option value="usd" selected>USD</option>
+                        <option value="eur">EUR</option>
+                        <option value="clp">CLP</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>&nbsp;</label>
+                    <button id="analyzeBtn">Analizar</button>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {loading && (
-        <div className="flex justify-center mb-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-          <span className="ml-2 text-sm text-gray-600">Generando predicciones...</span>
-        </div>
-      )}
-
-      {/* Gráfico Principal */}
-      <div className="mb-6 h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={allData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              dataKey="date" 
-              tickFormatter={(date) => new Date(date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}
-            />
-            <YAxis 
-              domain={['dataMin - 5%', 'dataMax + 5%']}
-              tickFormatter={formatPrice}
-            />
-            <Tooltip 
-              formatter={(value, name) => {
-                if (name === 'upperBound') return [formatPrice(value), 'Límite Superior'];
-                if (name === 'lowerBound') return [formatPrice(value), 'Límite Inferior'];
-                return [formatPrice(value), 'Precio'];
-              }}
-              labelFormatter={(date) => new Date(date).toLocaleDateString('es-ES')}
-            />
-            <Legend />
-            <Area
-              type="monotone"
-              dataKey="upperBound"
-              stackId="1"
-              stroke="none"
-              fill="rgba(59, 130, 246, 0.1)"
-              name="Banda de Confianza"
-            />
-            <Area
-              type="monotone"
-              dataKey="lowerBound"
-              stackId="1"
-              stroke="none"
-              fill="white"
-            />
-            <Line 
-              type="monotone" 
-              dataKey="price" 
-              stroke={modelInfo[selectedModel].color} 
-              strokeWidth={2}
-              dot={false}
-              name={`Precio ${selectedCrypto}`}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Métricas */}
-      <div className="grid md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg">
-          <h4 className="font-semibold mb-1">🔮 Predicción {timeframe}d</h4>
-          <p className="text-xl font-bold">
-            {predictions.length > 0 ? formatPrice(predictions[predictions.length - 1]?.price) : 'N/A'}
-          </p>
-          <p className="text-xs opacity-90">
-            {getPredictionChange() >= 0 ? '+' : ''}{getPredictionChange().toFixed(1)}% cambio
-          </p>
         </div>
         
-        <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg">
-          <h4 className="font-semibold mb-1">🎯 Precisión</h4>
-          <p className="text-xl font-bold">{modelInfo[selectedModel].accuracy}</p>
-          <p className="text-xs opacity-90">Modelo {selectedModel.toUpperCase()}</p>
+        <div id="statsContainer" class="stats-grid" style="display: none;"></div>
+        
+        <div id="loadingContainer" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Cargando datos del mercado...</p>
         </div>
         
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-lg">
-          <h4 className="font-semibold mb-1">📊 Volatilidad</h4>
-          <p className="text-xl font-bold">
-            {((volatilityMap[selectedCrypto] || 0.08) * 100).toFixed(0)}%
-          </p>
-          <p className="text-xs opacity-90">Riesgo diario</p>
-        </div>
+        <div id="errorContainer" class="error" style="display: none;"></div>
         
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-4 rounded-lg">
-          <h4 className="font-semibold mb-1">💰 Market Cap</h4>
-          <p className="text-xl font-bold">
-            ${cryptoData[selectedCrypto]?.marketCap}B
-          </p>
-          <p className="text-xs opacity-90">Capitalización</p>
+        <div id="chartContainer" class="chart-container" style="display: none;">
+            <h3 id="chartTitle">Gráfico de Precios</h3>
+            <canvas id="priceChart"></canvas>
         </div>
-      </div>
-
-      {/* Market Overview */}
-      <div className="grid md:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <h3 className="text-lg font-semibold mb-4">📊 Distribución de Mercado</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={portfolioData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {portfolioData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => [`$${value}B`, 'Market Cap']} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <h3 className="text-lg font-semibold mb-4">🏆 Top Performers 24h</h3>
-          <div className="space-y-2">
-            {Object.entries(cryptoData)
-              .sort(([,a], [,b]) => b.change24h - a.change24h)
-              .slice(0, 6)
-              .map(([symbol, data], index) => (
-                <div 
-                  key={symbol} 
-                  className={`flex justify-between items-center p-2 rounded ${
-                    selectedCrypto === symbol ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center">
-                      {index + 1}
-                    </span>
-                    <div>
-                      <div className="font-medium text-sm">{data.name}</div>
-                      <div className="text-xs text-gray-500">({symbol})</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold text-sm">{formatPrice(data.price)}</div>
-                    <div className={`text-xs ${data.change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {data.change24h >= 0 ? '+' : ''}{data.change24h.toFixed(2)}%
-                    </div>
-                  </div>
-                </div>
-              ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg text-center">
-        <div className="text-xs text-gray-600 space-y-1">
-          <p>⚠️ <strong>Disclaimer:</strong> Solo para fines educativos. No constituye asesoría financiera.</p>
-          <p>📊 Predicciones basadas en IA | 🚀 Modelos: LSTM, Transformer, ARIMA, Ensemble</p>
-          <p>💡 <strong>Consejo:</strong> Diversifique y nunca invierta más de lo que puede permitirse perder.</p>
-        </div>
-      </div>
     </div>
-  );
-};
 
-export default MultiCryptoPredictionModel;
+    <script>
+        let priceChart = null;
+        
+        class CryptoAnalyzer {
+            constructor() {
+                this.baseURL = 'https://api.coingecko.com/api/v3';
+                this.initEventListeners();
+            }
+            
+            initEventListeners() {
+                document.getElementById('analyzeBtn').addEventListener('click', () => {
+                    this.performAnalysis();
+                });
+            }
+            
+            showLoading() {
+                document.getElementById('loadingContainer').style.display = 'block';
+                document.getElementById('statsContainer').style.display = 'none';
+                document.getElementById('chartContainer').style.display = 'none';
+                document.getElementById('errorContainer').style.display = 'none';
+            }
+            
+            hideLoading() {
+                document.getElementById('loadingContainer').style.display = 'none';
+            }
+            
+            showError(message) {
+                document.getElementById('errorContainer').innerHTML = message;
+                document.getElementById('errorContainer').style.display = 'block';
+            }
+            
+            async fetchCryptoData(crypto, currency, days) {
+                try {
+                    const response = await fetch(
+                        `${this.baseURL}/coins/${crypto}/market_chart?vs_currency=${currency}&days=${days}`
+                    );
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    throw new Error(`Error al obtener datos: ${error.message}`);
+                }
+            }
+            
+            async fetchCurrentPrice(crypto, currency) {
+                try {
+                    const response = await fetch(
+                        `${this.baseURL}/simple/price?ids=${crypto}&vs_currencies=${currency}&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`
+                    );
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    throw new Error(`Error al obtener precio actual: ${error.message}`);
+                }
+            }
+            
+            calculateTechnicalIndicators(prices) {
+                const sma20 = this.calculateSMA(prices, 20);
+                const sma50 = this.calculateSMA(prices, 50);
+                const rsi = this.calculateRSI(prices, 14);
+                const volatility = this.calculateVolatility(prices);
+                
+                return { sma20, sma50, rsi, volatility };
+            }
+            
+            calculateSMA(prices, period) {
+                if (prices.length < period) return null;
+                
+                const recent = prices.slice(-period);
+                const sum = recent.reduce((acc, price) => acc + price, 0);
+                return sum / period;
+            }
+            
+            calculateRSI(prices, period = 14) {
+                if (prices.length < period + 1) return null;
+                
+                const changes = [];
+                for (let i = 1; i < prices.length; i++) {
+                    changes.push(prices[i] - prices[i - 1]);
+                }
+                
+                const gains = changes.map(change => change > 0 ? change : 0);
+                const losses = changes.map(change => change < 0 ? -change : 0);
+                
+                const avgGain = gains.slice(-period).reduce((sum, gain) => sum + gain, 0) / period;
+                const avgLoss = losses.slice(-period).reduce((sum, loss) => sum + loss, 0) / period;
+                
+                if (avgLoss === 0) return 100;
+                
+                const rs = avgGain / avgLoss;
+                const rsi = 100 - (100 / (1 + rs));
+                
+                return rsi;
+            }
+            
+            calculateVolatility(prices) {
+                if (prices.length < 2) return 0;
+                
+                const returns = [];
+                for (let i = 1; i < prices.length; i++) {
+                    returns.push((prices[i] - prices[i - 1]) / prices[i - 1]);
+                }
+                
+                const mean = returns.reduce((sum, ret) => sum + ret, 0) / returns.length;
+                const variance = returns.reduce((sum, ret) => sum + Math.pow(ret - mean, 2), 0) / returns.length;
+                
+                return Math.sqrt(variance) * Math.sqrt(252) * 100; // Anualizada
+            }
+            
+            formatCurrency(value, currency) {
+                const currencySymbols = {
+                    'usd': '$',
+                    'eur': '€',
+                    'clp': '$'
+                };
+                
+                const symbol = currencySymbols[currency] || '$';
+                
+                if (currency === 'clp') {
+                    return `${symbol}${Math.round(value).toLocaleString('es-CL')}`;
+                }
+                
+                return `${symbol}${value.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 8
+                })}`;
+            }
+            
+            renderStats(currentData, technicalData, crypto, currency) {
+                const cryptoData = currentData[crypto];
+                const price = cryptoData[currency];
+                const change24h = cryptoData[`${currency}_24h_change`];
+                const volume = cryptoData[`${currency}_24h_vol`];
+                const marketCap = cryptoData[`${currency}_market_cap`];
+                
+                const statsHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${this.formatCurrency(price, currency)}</div>
+                        <div class="stat-label">Precio Actual</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value ${change24h >= 0 ? 'positive' : 'negative'}">
+                            ${change24h >= 0 ? '+' : ''}${change24h.toFixed(2)}%
+                        </div>
+                        <div class="stat-label">Cambio 24h</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${this.formatCurrency(volume, currency)}</div>
+                        <div class="stat-label">Volumen 24h</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${this.formatCurrency(marketCap, currency)}</div>
+                        <div class="stat-label">Market Cap</div>
+                    </div>
+                    ${technicalData.rsi ? `
+                    <div class="stat-card">
+                        <div class="stat-value ${technicalData.rsi < 30 ? 'positive' : technicalData.rsi > 70 ? 'negative' : ''}">${technicalData.rsi.toFixed(1)}</div>
+                        <div class="stat-label">RSI (14)</div>
+                    </div>` : ''}
+                    <div class="stat-card">
+                        <div class="stat-value">${technicalData.volatility.toFixed(1)}%</div>
+                        <div class="stat-label">Volatilidad Anual</div>
+                    </div>
+                `;
+                
+                document.getElementById('statsContainer').innerHTML = statsHTML;
+                document.getElementById('statsContainer').style.display = 'grid';
+            }
+            
+            renderChart(data, crypto, currency, days) {
+                const ctx = document.getElementById('priceChart').getContext('2d');
+                
+                // Preparar datos del gráfico
+                const prices = data.prices.map(item => ({
+                    x: new Date(item[0]),
+                    y: item[1]
+                }));
+                
+                const volumes = data.total_volumes.map(item => ({
+                    x: new Date(item[0]),
+                    y: item[1]
+                }));
+                
+                // Destruir gráfico anterior si existe
+                if (priceChart) {
+                    priceChart.destroy();
+                }
+                
+                const cryptoNames = {
+                    'bitcoin': 'Bitcoin',
+                    'ethereum': 'Ethereum',
+                    'binancecoin': 'Binance Coin',
+                    'cardano': 'Cardano',
+                    'solana': 'Solana',
+                    'polkadot': 'Polkadot',
+                    'dogecoin': 'Dogecoin',
+                    'avalanche-2': 'Avalanche'
+                };
+                
+                document.getElementById('chartTitle').textContent = 
+                    `${cryptoNames[crypto] || crypto} - Últimos ${days} días`;
+                
+                priceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'Precio',
+                            data: prices,
+                            borderColor: 'rgb(102, 126, 234)',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        }, {
+                            label: 'Volumen',
+                            data: volumes,
+                            borderColor: 'rgba(118, 75, 162, 0.5)',
+                            backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            type: 'bar',
+                            yAxisID: 'y1'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: days <= 7 ? 'hour' : 'day'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            },
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                },
+                                ticks: {
+                                    callback: (value) => this.formatCurrency(value, currency)
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                                ticks: {
+                                    callback: (value) => {
+                                        if (value >= 1e9) return (value / 1e9).toFixed(1) + 'B';
+                                        if (value >= 1e6) return (value / 1e6).toFixed(1) + 'M';
+                                        if (value >= 1e3) return (value / 1e3).toFixed(1) + 'K';
+                                        return value.toFixed(0);
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        if (context.datasetIndex === 0) {
+                                            return `Precio: ${analyzer.formatCurrency(context.parsed.y, currency)}`;
+                                        } else {
+                                            return `Volumen: ${analyzer.formatCurrency(context.parsed.y, currency)}`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                document.getElementById('chartContainer').style.display = 'block';
+            }
+            
+            async performAnalysis() {
+                const crypto = document.getElementById('cryptoSelect').value;
+                const days = document.getElementById('timeRange').value;
+                const currency = document.getElementById('currency').value;
+                
+                this.showLoading();
+                
+                try {
+                    // Obtener datos históricos y precio actual en paralelo
+                    const [historicalData, currentData] = await Promise.all([
+                        this.fetchCryptoData(crypto, currency, days),
+                        this.fetchCurrentPrice(crypto, currency)
+                    ]);
+                    
+                    // Calcular indicadores técnicos
+                    const prices = historicalData.prices.map(item => item[1]);
+                    const technicalData = this.calculateTechnicalIndicators(prices);
+                    
+                    this.hideLoading();
+                    
+                    // Renderizar estadísticas y gráfico
+                    this.renderStats(currentData, technicalData, crypto, currency);
+                    this.renderChart(historicalData, crypto, currency, parseInt(days));
+                    
+                } catch (error) {
+                    this.hideLoading();
+                    this.showError(error.message);
+                    console.error('Error en análisis:', error);
+                }
+            }
+        }
+        
+        // Inicializar la aplicación
+        const analyzer = new CryptoAnalyzer();
+        
+        // Realizar análisis inicial
+        window.addEventListener('load', () => {
+            analyzer.performAnalysis();
+        });
+    </script>
+</body>
+</html>
