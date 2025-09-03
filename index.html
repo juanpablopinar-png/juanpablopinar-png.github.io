@@ -3,524 +3,706 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consultor de Criptomonedas</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Sudoku Challenge - 5 Niveles</title>
     <style>
-        body {
+        * {
             margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: white;
-            min-height: 100vh;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .crypto-card {
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid #334155;
-            border-radius: 12px;
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             padding: 20px;
-            margin: 10px;
+            color: white;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .level-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .level-btn {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .level-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .level-btn.active {
+            background: rgba(255, 255, 255, 0.4);
+            border-color: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            backdrop-filter: blur(15px);
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            color: #333;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .info-item {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        .crypto-card:hover {
-            background: rgba(51, 65, 85, 0.8);
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
             transform: translateY(-2px);
         }
-        .crypto-card.active {
-            background: rgba(59, 130, 246, 0.2);
-            border-color: #3b82f6;
+
+        .btn-secondary {
+            background: #e53e3e;
+            color: white;
         }
-        .price-positive { color: #10b981; }
-        .price-negative { color: #ef4444; }
-        .chart-container {
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 20px;
+
+        .btn-secondary:hover {
+            background: #c53030;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #38a169;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #2f855a;
+            transform: translateY(-2px);
+        }
+
+        .sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 2px;
+            background: #333;
+            border: 3px solid #333;
+            border-radius: 10px;
+            padding: 5px;
+            margin: 0 auto;
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        .sudoku-cell {
+            width: 45px;
+            height: 45px;
+            border: none;
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            background: white;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .sudoku-cell:focus {
+            outline: 3px solid #667eea;
+            background: #f0f8ff;
+        }
+
+        .sudoku-cell.prefilled {
+            background: #e2e8f0;
+            color: #2d3748;
+            font-weight: 900;
+        }
+
+        .sudoku-cell.error {
+            background: #fed7d7;
+            color: #e53e3e;
+        }
+
+        .sudoku-cell.correct {
+            background: #c6f6d5;
+            color: #38a169;
+        }
+
+        .thick-border-right {
+            border-right: 3px solid #333 !important;
+        }
+
+        .thick-border-bottom {
+            border-bottom: 3px solid #333 !important;
+        }
+
+        .completion-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            color: #333;
+            max-width: 400px;
+            animation: modalPop 0.5s ease;
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-content h2 {
+            color: #38a169;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .stars {
+            font-size: 2rem;
             margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .sudoku-cell {
+                width: 35px;
+                height: 35px;
+                font-size: 1.2rem;
+            }
+            
+            .game-container {
+                padding: 20px;
+            }
+            
+            .game-info {
+                justify-content: center;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sudoku-cell {
+                width: 30px;
+                height: 30px;
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container mx-auto p-6">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                🚀 Consultor de Criptomonedas
-            </h1>
-            <p class="text-gray-400 text-lg">Análisis de precios de los últimos 6 meses (Marzo - Septiembre 2025)</p>
-            <div class="flex items-center justify-center gap-2 mt-2 text-amber-400">
-                <span>⚠️</span>
-                <span class="text-sm">Datos actualizados al 2 de septiembre de 2025</span>
-            </div>
+    <div class="header">
+        <h1>🧩 Sudoku Challenge</h1>
+        <p>5 Niveles de Dificultad - ¡Pon a prueba tu mente!</p>
+    </div>
+
+    <div class="level-selector">
+        <button class="level-btn active" onclick="selectLevel(1)">🟢 Nivel 1<br><small>Principiante</small></button>
+        <button class="level-btn" onclick="selectLevel(2)">🟡 Nivel 2<br><small>Fácil</small></button>
+        <button class="level-btn" onclick="selectLevel(3)">🟠 Nivel 3<br><small>Intermedio</small></button>
+        <button class="level-btn" onclick="selectLevel(4)">🔴 Nivel 4<br><small>Difícil</small></button>
+        <button class="level-btn" onclick="selectLevel(5)">⚫ Nivel 5<br><small>Experto</small></button>
+    </div>
+
+    <div class="game-container">
+        <div class="game-info">
+            <div class="info-item">Nivel: <span id="currentLevel">1 - Principiante</span></div>
+            <div class="info-item">Tiempo: <span id="timer">00:00</span></div>
+            <div class="info-item">Errores: <span id="errors">0</span></div>
         </div>
 
-        <!-- Search -->
-        <div class="mb-6">
-            <input type="text" id="searchInput" placeholder="🔍 Buscar criptomoneda..." 
-                   class="w-full max-w-md mx-auto block px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-gray-400">
+        <div class="controls">
+            <button class="btn btn-primary" onclick="newGame()">🎮 Nuevo Juego</button>
+            <button class="btn btn-secondary" onclick="clearGrid()">🧹 Limpiar</button>
+            <button class="btn btn-success" onclick="checkSolution()">✅ Verificar</button>
+            <button class="btn btn-primary" onclick="showHint()">💡 Pista</button>
         </div>
 
-        <!-- Crypto Selection -->
-        <div class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8" id="cryptoSelection">
-            <!-- Se llena con JavaScript -->
+        <div class="sudoku-grid" id="sudokuGrid">
+            <!-- Se genera con JavaScript -->
         </div>
+    </div>
 
-        <!-- Main Content -->
-        <div class="grid lg:grid-cols-3 gap-6">
-            <!-- Price Info -->
-            <div class="lg:col-span-1">
-                <div id="priceInfo" class="chart-container">
-                    <!-- Se llena con JavaScript -->
-                </div>
-                
-                <div id="predictions" class="chart-container">
-                    <!-- Se llena con JavaScript -->
-                </div>
-            </div>
-
-            <!-- Charts -->
-            <div class="lg:col-span-2">
-                <div class="chart-container">
-                    <h3 class="text-xl font-bold mb-4">📈 Evolución de Precios - Últimos 6 Meses</h3>
-                    <canvas id="priceChart" width="400" height="200"></canvas>
-                </div>
-
-                <div class="chart-container">
-                    <h3 class="text-xl font-bold mb-4">📊 Volumen de Trading - Últimos 6 Meses</h3>
-                    <canvas id="volumeChart" width="400" height="150"></canvas>
-                </div>
-
-                <div id="keyEvents" class="chart-container">
-                    <!-- Se llena con JavaScript -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="mt-8 text-center text-sm text-gray-500">
-            <p>⚠️ Esta información es solo para fines educativos. No constituye asesoramiento financiero.</p>
-            <p>Los precios de las criptomonedas son altamente volátiles. Investiga antes de tomar decisiones de inversión.</p>
+    <!-- Modal de completado -->
+    <div class="completion-modal" id="completionModal">
+        <div class="modal-content">
+            <h2>🎉 ¡Felicitaciones!</h2>
+            <div class="stars" id="stars">⭐⭐⭐</div>
+            <p id="completionMessage">¡Has completado el Sudoku!</p>
+            <p id="completionTime">Tiempo: 05:32</p>
+            <p id="completionErrors">Errores: 2</p>
+            <button class="btn btn-primary" onclick="closeModal()">Continuar</button>
+            <button class="btn btn-success" onclick="nextLevel()">Siguiente Nivel</button>
         </div>
     </div>
 
     <script>
-        // Datos de criptomonedas
-        const cryptoData = {
-            BTC: {
-                name: 'Bitcoin',
-                symbol: 'BTC',
-                currentPrice: 109250,
-                change24h: -1.76,
-                marketCap: 2162000000000,
-                volume24h: 45600000000,
-                ath: 124171,
-                athDate: '2025-08-14',
-                description: 'La primera y más popular criptomoneda del mundo.',
-                predictions2025: {
-                    min: 103756,
-                    max: 128000,
-                    avg: 116000
-                },
-                keyEvents: [
-                    'Máximo histórico de $124,171 en agosto 2025',
-                    'Aprobación de ETFs de Bitcoin',
-                    'Elección de Trump impulsa mercado crypto',
-                    'Halving de Bitcoin en abril 2024'
-                ],
-                historicalData: {
-                    months: ['Mar 2025', 'Abr 2025', 'May 2025', 'Jun 2025', 'Jul 2025', 'Ago 2025', 'Sep 2025'],
-                    prices: [76600, 95000, 111970, 108000, 123000, 124171, 109250],
-                    volumes: [32000000000, 38000000000, 42000000000, 40000000000, 48000000000, 52000000000, 45600000000]
-                }
-            },
-            ETH: {
-                name: 'Ethereum',
-                symbol: 'ETH',
-                currentPrice: 3794,
-                change24h: -2.77,
-                marketCap: 456000000000,
-                volume24h: 38240000000,
-                ath: 4900,
-                athDate: '2025-08-24',
-                description: 'Plataforma líder para contratos inteligentes y aplicaciones descentralizadas.',
-                predictions2025: {
-                    min: 3330,
-                    max: 6925,
-                    avg: 4500
-                },
-                keyEvents: [
-                    'Máximo histórico de $4,900 en agosto 2025',
-                    'Upgrade Dencun en marzo 2024',
-                    'Aprobación de ETFs de Ethereum',
-                    'Próximo upgrade Pectra en Q4 2025'
-                ],
-                historicalData: {
-                    months: ['Mar 2025', 'Abr 2025', 'May 2025', 'Jun 2025', 'Jul 2025', 'Ago 2025', 'Sep 2025'],
-                    prices: [3200, 3600, 4100, 3850, 4400, 4900, 3794],
-                    volumes: [22000000000, 28000000000, 32000000000, 30000000000, 35000000000, 44000000000, 38240000000]
-                }
-            },
-            BNB: {
-                name: 'BNB',
-                symbol: 'BNB',
-                currentPrice: 582,
-                change24h: 1.8,
-                marketCap: 84500000000,
-                volume24h: 2100000000,
-                ath: 720,
-                athDate: '2021-05-10',
-                description: 'Token nativo del ecosistema Binance, el exchange de criptomonedas más grande del mundo.',
-                predictions2025: {
-                    min: 450,
-                    max: 850,
-                    avg: 650
-                },
-                keyEvents: [
-                    'Integración con Binance Smart Chain',
-                    'Quema trimestral de tokens BNB',
-                    'Expansión del ecosistema Binance',
-                    'Adopción creciente en DeFi y NFTs'
-                ],
-                historicalData: {
-                    months: ['Mar 2025', 'Abr 2025', 'May 2025', 'Jun 2025', 'Jul 2025', 'Ago 2025', 'Sep 2025'],
-                    prices: [385, 420, 485, 520, 595, 648, 582],
-                    volumes: [1200000000, 1450000000, 1800000000, 1950000000, 2300000000, 2500000000, 2100000000]
-                }
-            },
-            XRP: {
-                name: 'XRP',
-                symbol: 'XRP',
-                currentPrice: 2.82,
-                change24h: 2.5,
-                marketCap: 165000000000,
-                volume24h: 6100000000,
-                ath: 3.84,
-                athDate: '2018-01-07',
-                description: 'Moneda digital diseñada para pagos globales rápidos y de bajo costo.',
-                predictions2025: {
-                    min: 3.08,
-                    max: 5.81,
-                    avg: 3.51
-                },
-                keyEvents: [
-                    'SEC retira demanda en marzo 2025',
-                    'Posible aprobación de ETF de XRP',
-                    'Integración con instituciones financieras',
-                    'Lanzamiento de stablecoin RLUSD'
-                ],
-                historicalData: {
-                    months: ['Mar 2025', 'Abr 2025', 'May 2025', 'Jun 2025', 'Jul 2025', 'Ago 2025', 'Sep 2025'],
-                    prices: [0.62, 0.85, 1.45, 2.10, 2.65, 3.20, 2.82],
-                    volumes: [2800000000, 3200000000, 4100000000, 5200000000, 6800000000, 7200000000, 6100000000]
-                }
-            },
-            SOL: {
-                name: 'Solana',
-                symbol: 'SOL',
-                currentPrice: 161,
-                change24h: -2.0,
-                marketCap: 85000000000,
-                volume24h: 4200000000,
-                ath: 293,
-                athDate: '2025-01-15',
-                description: 'Blockchain de alto rendimiento para aplicaciones descentralizadas.',
-                predictions2025: {
-                    min: 170,
-                    max: 600,
-                    avg: 300
-                },
-                keyEvents: [
-                    'Máximo de $293 en enero 2025',
-                    'Posible aprobación de ETF de SOL',
-                    'Crecimiento en DeFi y NFTs',
-                    'Mejoras en escalabilidad'
-                ],
-                historicalData: {
-                    months: ['Mar 2025', 'Abr 2025', 'May 2025', 'Jun 2025', 'Jul 2025', 'Ago 2025', 'Sep 2025'],
-                    prices: [100, 125, 180, 155, 190, 175, 161],
-                    volumes: [2100000000, 2800000000, 3500000000, 3200000000, 4100000000, 3900000000, 4200000000]
-                }
-            },
-            ADA: {
-                name: 'Cardano',
-                symbol: 'ADA',
-                currentPrice: 0.73,
-                change24h: -6.0,
-                marketCap: 23700000000,
-                volume24h: 890000000,
-                ath: 3.09,
-                athDate: '2021-09-02',
-                description: 'Plataforma blockchain enfocada en sostenibilidad y escalabilidad.',
-                predictions2025: {
-                    min: 0.55,
-                    max: 7.00,
-                    avg: 1.50
-                },
-                keyEvents: [
-                    'Mención de Trump sobre reserva crypto',
-                    'Desarrollo continuo de Hydra',
-                    'Crecimiento en DeFi',
-                    'Partnerships institucionales'
-                ],
-                historicalData: {
-                    months: ['Mar 2025', 'Abr 2025', 'May 2025', 'Jun 2025', 'Jul 2025', 'Ago 2025', 'Sep 2025'],
-                    prices: [0.58, 0.64, 0.82, 0.75, 0.89, 0.92, 0.73],
-                    volumes: [520000000, 580000000, 720000000, 650000000, 810000000, 920000000, 890000000]
-                }
-            }
+        // Variables del juego
+        let currentLevel = 1;
+        let gameGrid = [];
+        let solutionGrid = [];
+        let initialGrid = [];
+        let timer = 0;
+        let timerInterval = null;
+        let errors = 0;
+        let hintsUsed = 0;
+
+        // Configuración de niveles (número de celdas prefilladas)
+        const levelConfig = {
+            1: { name: "Principiante", prefilled: 45 },
+            2: { name: "Fácil", prefilled: 40 },
+            3: { name: "Intermedio", prefilled: 35 },
+            4: { name: "Difícil", prefilled: 30 },
+            5: { name: "Experto", prefilled: 25 }
         };
 
-        let selectedCrypto = 'BTC';
-        let priceChart = null;
-        let volumeChart = null;
-
-        // Funciones de utilidad
-        function formatPrice(price) {
-            if (price >= 1000) {
-                return new Intl.NumberFormat('es-ES', {
-                    style: 'currency',
-                    currency: 'USD',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                }).format(price);
-            }
-            return new Intl.NumberFormat('es-ES', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 4
-            }).format(price);
+        // Generar grid vacío
+        function createEmptyGrid() {
+            return Array(9).fill().map(() => Array(9).fill(0));
         }
 
-        function formatMarketCap(marketCap) {
-            if (marketCap >= 1e12) {
-                return `$${(marketCap / 1e12).toFixed(2)}T`;
-            } else if (marketCap >= 1e9) {
-                return `$${(marketCap / 1e9).toFixed(2)}B`;
+        // Verificar si un número es válido en una posición
+        function isValidMove(grid, row, col, num) {
+            // Verificar fila
+            for (let x = 0; x < 9; x++) {
+                if (grid[row][x] === num) return false;
+            }
+
+            // Verificar columna
+            for (let x = 0; x < 9; x++) {
+                if (grid[x][col] === num) return false;
+            }
+
+            // Verificar caja 3x3
+            const startRow = row - row % 3;
+            const startCol = col - col % 3;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (grid[i + startRow][j + startCol] === num) return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Generar Sudoku completo usando backtracking
+        function generateCompleteSudoku(grid) {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (grid[row][col] === 0) {
+                        const numbers = shuffleArray([1,2,3,4,5,6,7,8,9]);
+                        for (let num of numbers) {
+                            if (isValidMove(grid, row, col, num)) {
+                                grid[row][col] = num;
+                                if (generateCompleteSudoku(grid)) {
+                                    return true;
+                                }
+                                grid[row][col] = 0;
+                            }
+                        }
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        // Mezclar array
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        // Generar puzzle removiendo números
+        function generatePuzzle(level) {
+            // Crear solución completa
+            solutionGrid = createEmptyGrid();
+            generateCompleteSudoku(solutionGrid);
+
+            // Crear copia para el puzzle
+            gameGrid = solutionGrid.map(row => [...row]);
+            
+            // Remover números según el nivel
+            const prefilled = levelConfig[level].prefilled;
+            const toRemove = 81 - prefilled;
+            
+            const positions = [];
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    positions.push([i, j]);
+                }
+            }
+            
+            const shuffledPositions = shuffleArray(positions);
+            for (let i = 0; i < toRemove; i++) {
+                const [row, col] = shuffledPositions[i];
+                gameGrid[row][col] = 0;
+            }
+
+            initialGrid = gameGrid.map(row => [...row]);
+        }
+
+        // Renderizar grid en HTML
+        function renderGrid() {
+            const gridElement = document.getElementById('sudokuGrid');
+            gridElement.innerHTML = '';
+
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    const cell = document.createElement('input');
+                    cell.type = 'number';
+                    cell.min = '1';
+                    cell.max = '9';
+                    cell.className = 'sudoku-cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+
+                    // Añadir bordes gruesos para separar cajas 3x3
+                    if (col === 2 || col === 5) {
+                        cell.classList.add('thick-border-right');
+                    }
+                    if (row === 2 || row === 5) {
+                        cell.classList.add('thick-border-bottom');
+                    }
+
+                    if (initialGrid[row][col] !== 0) {
+                        cell.value = initialGrid[row][col];
+                        cell.classList.add('prefilled');
+                        cell.readOnly = true;
+                    } else {
+                        cell.addEventListener('input', handleCellInput);
+                    }
+
+                    gridElement.appendChild(cell);
+                }
+            }
+        }
+
+        // Manejar entrada en celda
+        function handleCellInput(event) {
+            const cell = event.target;
+            const row = parseInt(cell.dataset.row);
+            const col = parseInt(cell.dataset.col);
+            const value = parseInt(cell.value) || 0;
+
+            // Limpiar clases previas
+            cell.classList.remove('error', 'correct');
+
+            if (value === 0) {
+                gameGrid[row][col] = 0;
+                return;
+            }
+
+            // Verificar si el movimiento es válido
+            const tempGrid = gameGrid.map(row => [...row]);
+            tempGrid[row][col] = 0; // Temporalmente vaciar la celda
+            
+            if (isValidMove(tempGrid, row, col, value)) {
+                gameGrid[row][col] = value;
+                cell.classList.add('correct');
+                
+                // Verificar si el juego está completo
+                setTimeout(checkGameCompletion, 100);
             } else {
-                return `$${(marketCap / 1e6).toFixed(2)}M`;
+                gameGrid[row][col] = 0;
+                cell.classList.add('error');
+                errors++;
+                updateErrorCount();
+                
+                // Limpiar la celda después de un momento
+                setTimeout(() => {
+                    cell.value = '';
+                    cell.classList.remove('error');
+                }, 1000);
             }
         }
 
-        // Renderizar selección de criptos
-        function renderCryptoSelection() {
-            const container = document.getElementById('cryptoSelection');
-            container.innerHTML = '';
+        // Verificar si el juego está completo
+        function checkGameCompletion() {
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (gameGrid[row][col] === 0) {
+                        return false;
+                    }
+                }
+            }
             
-            Object.keys(cryptoData).forEach(crypto => {
-                const data = cryptoData[crypto];
-                const card = document.createElement('div');
-                card.className = `crypto-card ${selectedCrypto === crypto ? 'active' : ''}`;
-                card.onclick = () => selectCrypto(crypto);
-                
-                const changeIcon = data.change24h >= 0 ? '📈' : '📉';
-                const changeColor = data.change24h >= 0 ? 'price-positive' : 'price-negative';
-                
-                card.innerHTML = `
-                    <div class="font-bold text-lg">${crypto}</div>
-                    <div class="text-sm text-gray-400">${data.name}</div>
-                    <div class="text-xs font-semibold">${formatPrice(data.currentPrice)}</div>
-                    <div class="text-sm ${changeColor} flex items-center gap-1">
-                        ${changeIcon} ${Math.abs(data.change24h).toFixed(2)}%
-                    </div>
-                `;
-                
-                container.appendChild(card);
+            // Juego completado
+            gameCompleted();
+            return true;
+        }
+
+        // Juego completado
+        function gameCompleted() {
+            stopTimer();
+            showCompletionModal();
+        }
+
+        // Mostrar modal de completado
+        function showCompletionModal() {
+            const modal = document.getElementById('completionModal');
+            const stars = document.getElementById('stars');
+            const message = document.getElementById('completionMessage');
+            const timeEl = document.getElementById('completionTime');
+            const errorsEl = document.getElementById('completionErrors');
+
+            // Calcular estrellas basadas en errores y tiempo
+            let starCount = 3;
+            if (errors > 3) starCount = 2;
+            if (errors > 6) starCount = 1;
+            if (timer > 600) starCount = Math.max(1, starCount - 1); // Más de 10 minutos
+
+            stars.textContent = '⭐'.repeat(starCount) + '☆'.repeat(3 - starCount);
+            
+            const timeString = formatTime(timer);
+            timeEl.textContent = `Tiempo: ${timeString}`;
+            errorsEl.textContent = `Errores: ${errors}`;
+            
+            if (starCount === 3) {
+                message.textContent = '¡Perfecto! Eres un maestro del Sudoku';
+            } else if (starCount === 2) {
+                message.textContent = '¡Muy bien! Buen trabajo';
+            } else {
+                message.textContent = '¡Completado! Sigue practicando';
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        // Cerrar modal
+        function closeModal() {
+            document.getElementById('completionModal').style.display = 'none';
+        }
+
+        // Siguiente nivel
+        function nextLevel() {
+            closeModal();
+            if (currentLevel < 5) {
+                selectLevel(currentLevel + 1);
+            } else {
+                alert('¡Felicitaciones! Has completado todos los niveles');
+            }
+        }
+
+        // Seleccionar nivel
+        function selectLevel(level) {
+            currentLevel = level;
+            
+            // Actualizar botones
+            document.querySelectorAll('.level-btn').forEach((btn, index) => {
+                btn.classList.toggle('active', index + 1 === level);
+            });
+            
+            // Actualizar información
+            document.getElementById('currentLevel').textContent = `${level} - ${levelConfig[level].name}`;
+            
+            newGame();
+        }
+
+        // Nuevo juego
+        function newGame() {
+            resetGame();
+            generatePuzzle(currentLevel);
+            renderGrid();
+            startTimer();
+        }
+
+        // Resetear juego
+        function resetGame() {
+            stopTimer();
+            timer = 0;
+            errors = 0;
+            hintsUsed = 0;
+            updateTimer();
+            updateErrorCount();
+        }
+
+        // Limpiar grid (solo celdas editables)
+        function clearGrid() {
+            const cells = document.querySelectorAll('.sudoku-cell:not(.prefilled)');
+            cells.forEach(cell => {
+                cell.value = '';
+                cell.classList.remove('error', 'correct');
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                gameGrid[row][col] = 0;
             });
         }
 
-        // Renderizar información de precio
-        function renderPriceInfo() {
-            const crypto = cryptoData[selectedCrypto];
-            const container = document.getElementById('priceInfo');
+        // Verificar solución
+        function checkSolution() {
+            let correctCells = 0;
+            let totalCells = 0;
             
-            const changeIcon = crypto.change24h >= 0 ? '📈' : '📉';
-            const changeColor = crypto.change24h >= 0 ? 'price-positive' : 'price-negative';
-            
-            container.innerHTML = `
-                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-                    💰 ${crypto.name} (${crypto.symbol})
-                </h2>
+            const cells = document.querySelectorAll('.sudoku-cell');
+            cells.forEach(cell => {
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
                 
-                <div class="space-y-4">
-                    <div>
-                        <div class="text-3xl font-bold text-green-400">${formatPrice(crypto.currentPrice)}</div>
-                        <div class="${changeColor} text-lg font-semibold">
-                            ${changeIcon} ${crypto.change24h >= 0 ? '+' : ''}${crypto.change24h.toFixed(2)}% <span class="text-gray-400 text-sm">24h</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <div class="text-gray-400">Cap. Mercado</div>
-                            <div class="font-semibold">${formatMarketCap(crypto.marketCap)}</div>
-                        </div>
-                        <div>
-                            <div class="text-gray-400">Volumen 24h</div>
-                            <div class="font-semibold">${formatMarketCap(crypto.volume24h)}</div>
-                        </div>
-                        <div>
-                            <div class="text-gray-400">Máximo histórico</div>
-                            <div class="font-semibold">${formatPrice(crypto.ath)}</div>
-                        </div>
-                        <div>
-                            <div class="text-gray-400">Fecha ATH</div>
-                            <div class="font-semibold">${crypto.athDate}</div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="text-gray-400 mb-2">Descripción</div>
-                        <p class="text-sm">${crypto.description}</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Renderizar predicciones
-        function renderPredictions() {
-            const crypto = cryptoData[selectedCrypto];
-            const container = document.getElementById('predictions');
-            
-            container.innerHTML = `
-                <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
-                    📅 Predicciones 2025
-                </h3>
-                <div class="space-y-3">
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Mínimo</span>
-                        <span class="font-semibold text-red-400">${formatPrice(crypto.predictions2025.min)}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Promedio</span>
-                        <span class="font-semibold text-yellow-400">${formatPrice(crypto.predictions2025.avg)}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Máximo</span>
-                        <span class="font-semibold text-green-400">${formatPrice(crypto.predictions2025.max)}</span>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Renderizar eventos clave
-        function renderKeyEvents() {
-            const crypto = cryptoData[selectedCrypto];
-            const container = document.getElementById('keyEvents');
-            
-            const eventsHTML = crypto.keyEvents.map(event => `
-                <div class="flex items-start gap-3">
-                    <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                    <span class="text-sm">${event}</span>
-                </div>
-            `).join('');
-            
-            container.innerHTML = `
-                <h3 class="text-xl font-bold mb-4">🔑 Eventos Clave</h3>
-                <div class="space-y-3">${eventsHTML}</div>
-            `;
-        }
-
-        // Renderizar gráficos
-        function renderCharts() {
-            const crypto = cryptoData[selectedCrypto];
-            
-            // Destruir gráficos anteriores
-            if (priceChart) priceChart.destroy();
-            if (volumeChart) volumeChart.destroy();
-            
-            // Gráfico de precios
-            const priceCtx = document.getElementById('priceChart').getContext('2d');
-            priceChart = new Chart(priceCtx, {
-                type: 'line',
-                data: {
-                    labels: crypto.historicalData.months,
-                    datasets: [{
-                        label: 'Precio',
-                        data: crypto.historicalData.prices,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { labels: { color: '#9ca3af' } }
-                    },
-                    scales: {
-                        x: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } },
-                        y: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } }
+                if (!cell.classList.contains('prefilled')) {
+                    totalCells++;
+                    cell.classList.remove('error', 'correct');
+                    
+                    if (parseInt(cell.value) === solutionGrid[row][col]) {
+                        cell.classList.add('correct');
+                        correctCells++;
+                    } else if (cell.value) {
+                        cell.classList.add('error');
                     }
                 }
             });
             
-            // Gráfico de volumen
-            const volumeCtx = document.getElementById('volumeChart').getContext('2d');
-            volumeChart = new Chart(volumeCtx, {
-                type: 'bar',
-                data: {
-                    labels: crypto.historicalData.months,
-                    datasets: [{
-                        label: 'Volumen',
-                        data: crypto.historicalData.volumes,
-                        backgroundColor: '#10b981',
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { labels: { color: '#9ca3af' } }
-                    },
-                    scales: {
-                        x: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } },
-                        y: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } }
+            const percentage = totalCells > 0 ? Math.round((correctCells / totalCells) * 100) : 0;
+            alert(`Progreso: ${percentage}% correcto (${correctCells}/${totalCells} celdas)`);
+        }
+
+        // Mostrar pista
+        function showHint() {
+            if (hintsUsed >= 3) {
+                alert('Has usado todas las pistas disponibles para este nivel');
+                return;
+            }
+            
+            // Encontrar una celda vacía aleatoria
+            const emptyCells = [];
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (gameGrid[row][col] === 0 && initialGrid[row][col] === 0) {
+                        emptyCells.push([row, col]);
                     }
                 }
-            });
-        }
-
-        // Seleccionar criptomoneda
-        function selectCrypto(crypto) {
-            selectedCrypto = crypto;
-            renderCryptoSelection();
-            renderPriceInfo();
-            renderPredictions();
-            renderKeyEvents();
-            renderCharts();
-        }
-
-        // Búsqueda
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const cards = document.querySelectorAll('.crypto-card');
+            }
             
-            cards.forEach(card => {
-                const text = card.textContent.toLowerCase();
-                if (text.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
+            if (emptyCells.length === 0) return;
+            
+            const randomIndex = Math.floor(Math.random() * emptyCells.length);
+            const [row, col] = emptyCells[randomIndex];
+            
+            // Llenar la celda con el valor correcto
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            cell.value = solutionGrid[row][col];
+            cell.classList.add('prefilled');
+            cell.readOnly = true;
+            gameGrid[row][col] = solutionGrid[row][col];
+            
+            hintsUsed++;
+            
+            setTimeout(checkGameCompletion, 100);
+        }
+
+        // Timer functions
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timer++;
+                updateTimer();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function updateTimer() {
+            document.getElementById('timer').textContent = formatTime(timer);
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateErrorCount() {
+            document.getElementById('errors').textContent = errors;
+        }
+
+        // Inicializar juego
+        document.addEventListener('DOMContentLoaded', () => {
+            newGame();
         });
 
-        // Inicializar aplicación
-        function init() {
-            renderCryptoSelection();
-            renderPriceInfo();
-            renderPredictions();
-            renderKeyEvents();
-            renderCharts();
-        }
-
-        // Inicializar cuando la página cargue
-        document.addEventListener('DOMContentLoaded', init);
+        // Prevenir envío de formulario al presionar Enter
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.classList.contains('sudoku-cell')) {
+                e.preventDefault();
+            }
+        });
     </script>
 </body>
 </html>
