@@ -14,15 +14,15 @@
         }
 
         :root {
-            --primary-color: #FFD700;
-            --secondary-color: #e74c3c;
+            --primary-color: #FFA500;
+            --secondary-color: #D64541;
             --accent-color: #FFA500;
             --text-dark: #2c3e50;
             --text-light: #7f8c8d;
             --bg-light: #ecf0f1;
             --shadow: 0 10px 30px rgba(0,0,0,0.1);
-            --gradient-primary: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-            --gradient-secondary: linear-gradient(135deg, #FF6B6B 0%, #e74c3c 100%);
+            --gradient-primary: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%);
+            --gradient-secondary: linear-gradient(135deg, #FF6B6B 0%, #D64541 100%);
         }
 
         body {
@@ -60,18 +60,18 @@
             gap: 0.5rem;
         }
 
+        .logo-image {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+        }
+
         .logo-text-my {
             color: #FFA500;
         }
 
         .logo-text-shoes {
             color: #D64541;
-        }
-
-        .logo-image {
-            width: 120px;
-            height: 120px;
-            object-fit: contain;
         }
 
         .nav-links {
@@ -257,7 +257,6 @@
             box-shadow: var(--shadow);
             transition: all 0.3s ease;
             position: relative;
-            cursor: pointer;
         }
 
         .product-card:hover {
@@ -272,11 +271,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 4rem;
             color: white;
             position: relative;
             overflow: hidden;
-            cursor: pointer;
+            cursor: zoom-in;
         }
 
         .product-image img {
@@ -288,46 +286,6 @@
 
         .product-card:hover .product-image img {
             transform: scale(1.1);
-        }
-
-        /* Modal para imagen ampliada */
-        .image-modal {
-            display: none;
-            position: fixed;
-            z-index: 3000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.9);
-            align-items: center;
-            justify-content: center;
-        }
-
-        .image-modal.active {
-            display: flex;
-        }
-
-        .image-modal img {
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
-            border-radius: 10px;
-        }
-
-        .image-modal-close {
-            position: absolute;
-            top: 20px;
-            right: 40px;
-            color: white;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .image-modal-close:hover {
-            color: #ddd;
         }
 
         .product-info {
@@ -351,20 +309,6 @@
         .product-description {
             color: var(--text-light);
             margin-bottom: 1.5rem;
-        }
-
-        .add-to-cart {
-            width: 100%;
-            padding: 0.8rem;
-            background: var(--gradient-primary);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
         }
 
         .size-selector {
@@ -407,9 +351,62 @@
             color: white;
         }
 
+        .add-to-cart {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
         .add-to-cart:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-modal.active {
+            display: flex;
+        }
+
+        .image-modal img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .image-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .image-modal-close:hover {
+            color: #ddd;
         }
 
         .cart-sidebar {
@@ -479,7 +476,6 @@
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 1.5rem;
             overflow: hidden;
         }
 
@@ -609,27 +605,11 @@
         }
 
         @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-            
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-            
-            .product-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-            
-            .cart-sidebar {
-                width: 100vw;
-                right: -100vw;
-            }
-            
-            nav {
-                padding: 1rem 3%;
-            }
+            .nav-links { display: none; }
+            .hero h1 { font-size: 2.5rem; }
+            .product-grid { grid-template-columns: 1fr; gap: 1rem; }
+            .cart-sidebar { width: 100vw; right: -100vw; }
+            nav { padding: 1rem 3%; }
         }
     </style>
 </head>
@@ -689,16 +669,15 @@
         </div>
     </div>
 
-    <!-- Modal para imagen ampliada -->
-    <div class="image-modal" id="imageModal">
-        <span class="image-modal-close" onclick="closeImageModal()">&times;</span>
-        <img id="modalImage" src="" alt="Imagen ampliada">
-    </div>
-
     <div class="whatsapp-float">
         <a href="https://wa.me/56977253231" class="whatsapp-btn" target="_blank">
             <i class="fab fa-whatsapp"></i>
         </a>
+    </div>
+
+    <div class="image-modal" id="imageModal" onclick="closeImageModal()">
+        <span class="image-modal-close">&times;</span>
+        <img id="modalImage" src="" alt="Imagen ampliada" onclick="event.stopPropagation()">
     </div>
 
     <script>
@@ -706,21 +685,21 @@
             {
                 id: 1,
                 name: "Zapatillas Pink",
-                price: 15990,
+                price: 19990,
                 description: "Zapatillas rosadas cómodas para uso diario",
                 image: "img/zapatilla1pink.jpeg"
             },
             {
                 id: 2,
                 name: "Zapatillas White",
-                price: 18990,
+                price: 19990,
                 description: "Zapatillas blancas elegantes y versátiles",
                 image: "img/zapatilla2white.png"
             }
         ];
 
         let cart = [];
-        let selectedSizes = {}; // Para mantener las tallas seleccionadas por producto
+        let selectedSizes = {};
 
         function formatPrice(price) {
             return price.toLocaleString('es-CL');
@@ -735,13 +714,11 @@
             document.getElementById('imageModal').classList.remove('active');
         }
 
-        function selectSize(productId, size) {
-            // Remover selección anterior
+        function selectSize(productId, size, event) {
+            event.stopPropagation();
             const allButtons = document.querySelectorAll(`[data-product="${productId}"]`);
             allButtons.forEach(btn => btn.classList.remove('selected'));
-            
-            // Seleccionar nueva talla
-            event.target.classList.add('selected');
+            event.currentTarget.classList.add('selected');
             selectedSizes[productId] = size;
         }
 
@@ -753,23 +730,22 @@
                 const productCard = document.createElement('div');
                 productCard.className = 'product-card';
                 productCard.innerHTML = `
-                    <div class="product-image">
+                    <div class="product-image" onclick="openImageModal('${product.image}')">
                         <img src="${product.image}" alt="${product.name}">
                     </div>
                     <div class="product-info">
                         <h3 class="product-name">${product.name}</h3>
-                        <p class="product-price">${formatPrice(product.price)}</p>
+                        <p class="product-price">$${formatPrice(product.price)}</p>
                         <p class="product-description">${product.description}</p>
                         <div class="size-selector">
-                            <label for="size-${product.id}">Talla:</label>
-                            <select id="size-${product.id}">
-                                <option value="">Selecciona una talla</option>
-                                <option value="36">36</option>
-                                <option value="37">37</option>
-                                <option value="38">38</option>
-                                <option value="39">39</option>
-                                <option value="40">40</option>
-                            </select>
+                            <label>Talla:</label>
+                            <div class="size-buttons" id="sizes-${product.id}">
+                                <button class="size-btn" data-product="${product.id}">36</button>
+                                <button class="size-btn" data-product="${product.id}">37</button>
+                                <button class="size-btn" data-product="${product.id}">38</button>
+                                <button class="size-btn" data-product="${product.id}">39</button>
+                                <button class="size-btn" data-product="${product.id}">40</button>
+                            </div>
                         </div>
                         <button class="add-to-cart" onclick="addToCart(${product.id})">
                             <i class="fas fa-cart-plus"></i> Agregar al Carrito
@@ -777,6 +753,11 @@
                     </div>
                 `;
                 productGrid.appendChild(productCard);
+
+                const sizeButtons = productCard.querySelectorAll('.size-btn');
+                sizeButtons.forEach(btn => {
+                    btn.addEventListener('click', (e) => selectSize(product.id, btn.textContent, e));
+                });
             });
         }
 
@@ -797,7 +778,6 @@
                 cart.push({...product, quantity: 1, size: selectedSize});
             }
 
-            // Limpiar selección de talla
             const allButtons = document.querySelectorAll(`[data-product="${productId}"]`);
             allButtons.forEach(btn => btn.classList.remove('selected'));
             delete selectedSizes[productId];
@@ -824,7 +804,7 @@
                 return;
             }
 
-            cart.forEach(item => {
+            cart.forEach((item, index) => {
                 const cartItem = document.createElement('div');
                 cartItem.className = 'cart-item';
                 cartItem.innerHTML = `
@@ -833,12 +813,12 @@
                     </div>
                     <div class="cart-item-info">
                         <div class="cart-item-name">${item.name}</div>
-                        <div class="cart-item-size" style="color: #666; font-size: 0.9rem; margin-bottom: 0.3rem;">Talla: ${item.size}</div>
-                        <div class="cart-item-price">${formatPrice(item.price)}</div>
+                        <div style="color: #666; font-size: 0.9rem; margin-bottom: 0.3rem;">Talla: ${item.size}</div>
+                        <div class="cart-item-price">$${formatPrice(item.price)}</div>
                         <div class="quantity-controls">
-                            <button class="quantity-btn" onclick="changeQuantity(${item.id}, '${item.size}', -1)">-</button>
+                            <button class="quantity-btn" onclick="changeQuantity(${index}, -1)">-</button>
                             <span style="margin: 0 10px; font-weight: bold;">${item.quantity}</span>
-                            <button class="quantity-btn" onclick="changeQuantity(${item.id}, '${item.size}', 1)">+</button>
+                            <button class="quantity-btn" onclick="changeQuantity(${index}, 1)">+</button>
                         </div>
                     </div>
                 `;
@@ -846,15 +826,12 @@
             });
         }
 
-        function changeQuantity(productId, size, change) {
-            const item = cart.find(item => item.id === productId && item.size === size);
-            if (item) {
-                item.quantity += change;
-                if (item.quantity <= 0) {
-                    cart = cart.filter(item => !(item.id === productId && item.size === size));
-                }
-                updateCartUI();
+        function changeQuantity(index, change) {
+            cart[index].quantity += change;
+            if (cart[index].quantity <= 0) {
+                cart.splice(index, 1);
             }
+            updateCartUI();
         }
 
         function openCart() {
@@ -875,7 +852,7 @@
 
             let message = '¡Hola! Me gustaría hacer el siguiente pedido:\n\n';
             cart.forEach(item => {
-                message += `${item.name} - Talla ${item.size} x${item.quantity} - ${formatPrice(item.price * item.quantity)}\n`;
+                message += `${item.name} - Talla ${item.size} x${item.quantity} - $${formatPrice(item.price * item.quantity)}\n`;
             });
             
             const cartTotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
