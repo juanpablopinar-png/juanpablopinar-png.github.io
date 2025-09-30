@@ -323,6 +323,39 @@
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .size-selector {
+            margin-bottom: 1rem;
+        }
+
+        .size-selector label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .size-selector select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .size-selector select:hover {
+            border-color: var(--primary-color);
+        }
+
+        .size-selector select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 165, 0, 0.1);
         }
 
         .add-to-cart:hover {
@@ -627,7 +660,7 @@
                 name: "Zapatillas White",
                 price: 18990,
                 description: "Zapatillas blancas elegantes y versátiles",
-                image: "img/zapatilla2white"
+                image: "img/zapatilla2white.png"
             }
         ];
 
@@ -650,8 +683,19 @@
                     </div>
                     <div class="product-info">
                         <h3 class="product-name">${product.name}</h3>
-                        <p class="product-price">$${formatPrice(product.price)}</p>
+                        <p class="product-price">${formatPrice(product.price)}</p>
                         <p class="product-description">${product.description}</p>
+                        <div class="size-selector">
+                            <label for="size-${product.id}">Talla:</label>
+                            <select id="size-${product.id}">
+                                <option value="">Selecciona una talla</option>
+                                <option value="36">36</option>
+                                <option value="37">37</option>
+                                <option value="38">38</option>
+                                <option value="39">39</option>
+                                <option value="40">40</option>
+                            </select>
+                        </div>
                         <button class="add-to-cart" onclick="addToCart(${product.id})">
                             <i class="fas fa-cart-plus"></i> Agregar al Carrito
                         </button>
