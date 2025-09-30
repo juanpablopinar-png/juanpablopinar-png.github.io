@@ -55,13 +55,17 @@
         .logo {
             font-size: 2rem;
             font-weight: bold;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+        }
+
+        .logo-text-my {
+            color: #FFD700;
+        }
+
+        .logo-text-shoes {
+            color: #e74c3c;
         }
 
         .logo-image {
@@ -554,7 +558,7 @@
         <nav>
             <div class="logo">
                 <img src="img/logo.png" alt="My Shoes Logo" class="logo-image">
-                My Shoes
+                <span><span class="logo-text-my">My</span> <span class="logo-text-shoes">Shoes</span></span>
             </div>
             <ul class="nav-links">
                 <li><a href="#home">Inicio</a></li>
