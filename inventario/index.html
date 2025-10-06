@@ -515,6 +515,9 @@
                         <button class="btn btn-small btn-sell" onclick="sellItem(${index})">
                             Vender
                         </button>
+                        <button class="btn btn-small" style="background: #3498db; color: white;" onclick="duplicateItem(${index})">
+                            Duplicar
+                        </button>
                         <button class="btn btn-small btn-delete" onclick="deleteItem(${index})">
                             Eliminar
                         </button>
@@ -592,6 +595,35 @@
                 saveData();
                 updateDisplay();
             }
+        }
+
+        function duplicateItem(index) {
+            const item = inventory[index];
+            
+            const tallas = ['36', '37', '38', '39', '40'];
+            let options = '<select id="newTalla" style="width: 100%; padding: 10px; font-size: 16px; margin: 10px 0;">';
+            tallas.forEach(t => {
+                options += `<option value="${t}">${t}</option>`;
+            });
+            options += '</select>';
+            
+            const cantidad = prompt('¿Cuántas unidades de la nueva talla?', '1');
+            if (!cantidad) return;
+            
+            const newTalla = prompt(`¿Qué talla? (Actual: ${item.talla})\nEscribe: 36, 37, 38, 39 o 40`);
+            if (!newTalla) return;
+            
+            const duplicated = {
+                ...item,
+                talla: newTalla,
+                cantidad: parseInt(cantidad),
+                fecha: new Date().toLocaleDateString()
+            };
+            
+            inventory.push(duplicated);
+            saveData();
+            updateDisplay();
+            alert(`Duplicado creado: ${item.modelo} talla ${newTalla}`);
         }
 
         document.getElementById('inventoryForm').addEventListener('submit', function(e) {
